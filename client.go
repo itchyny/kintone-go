@@ -11,8 +11,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Client is a kintone REST API client.
@@ -43,13 +45,36 @@ func NewClient(baseURL string, opts ...Option) (*Client, error) {
 	c := &Client{
 		baseURL:    u,
 		httpClient: http.DefaultClient,
-		header:     http.Header{"User-Agent": {"kintone-go"}},
+		header:     http.Header{"User-Agent": {userAgent()}},
 	}
 	for _, opt := range opts {
 		opt(c)
 	}
 	return c, nil
 }
+
+const modulePath = "github.com/itchyny/kintone-go"
+
+// userAgent returns the default User-Agent with the module version.
+var userAgent = sync.OnceValue(func() string {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "kintone-go"
+	}
+	mods := append([]*debug.Module{&bi.Main}, bi.Deps...)
+	for _, m := range mods {
+		if m.Path != modulePath {
+			continue
+		}
+		if m.Replace != nil {
+			m = m.Replace
+		}
+		if m.Version != "" && m.Version != "(devel)" {
+			return "kintone-go/" + m.Version
+		}
+	}
+	return "kintone-go"
+})
 
 // WithAPIToken authenticates with API tokens. Multiple tokens can be
 // specified to access multiple apps (for example on lookup fields).

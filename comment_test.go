@@ -52,7 +52,7 @@ func TestClientGetComments(t *testing.T) {
 						Text:      "alice \nThanks.",
 						CreatedAt: time.Date(2026, 10, 16, 1, 23, 0, 0, time.UTC),
 						Creator:   Entity{Code: "bob", Name: "Bob"},
-						Mentions:  []Mention{{Code: "alice", Type: MentionTypeUser}},
+						Mentions:  []Mention{{Code: "alice", Type: EntityTypeUser}},
 					},
 				},
 				Older: true,
@@ -80,9 +80,9 @@ func TestClientAddComment(t *testing.T) {
 			name:     "string ID",
 			response: `{"id": "3"}`,
 			mentions: []Mention{
-				{Code: "alice", Type: MentionTypeUser},
-				{Code: "dev", Type: MentionTypeOrganization},
-				{Code: "everyone", Type: MentionTypeGroup},
+				{Code: "alice", Type: EntityTypeUser},
+				{Code: "dev", Type: EntityTypeOrganization},
+				{Code: "everyone", Type: EntityTypeGroup},
 			},
 			wantBody: `{"app": 1, "record": 2, "comment": {"text": "Hello", "mentions": [
 				{"code": "alice", "type": "USER"},

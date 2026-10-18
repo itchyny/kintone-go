@@ -18,19 +18,9 @@ type Comment struct {
 
 // Mention is a mention in a comment.
 type Mention struct {
-	Code string      `json:"code"`
-	Type MentionType `json:"type"`
+	Code string     `json:"code"`
+	Type EntityType `json:"type"`
 }
-
-// MentionType is the type of a mention.
-type MentionType string
-
-// Mention types.
-const (
-	MentionTypeUser         MentionType = "USER"
-	MentionTypeGroup        MentionType = "GROUP"
-	MentionTypeOrganization MentionType = "ORGANIZATION"
-)
 
 // GetCommentsRequest is the request of [Client.GetComments].
 // Order is "asc" or "desc".

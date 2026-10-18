@@ -144,16 +144,7 @@ if err != nil {
 if err := client.DeployApps(ctx, []kintone.AppDeployment{{App: added.App}}); err != nil {
 	return err
 }
-for {
-	statuses, err := client.GetDeployStatus(ctx, []int64{added.App})
-	if err != nil {
-		return err
-	}
-	if statuses[0].Status != kintone.DeployStatusProcessing {
-		break
-	}
-	time.Sleep(time.Second)
-}
+err = client.WaitForDeploy(ctx, []int64{added.App})
 ```
 
 ### Spaces

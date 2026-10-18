@@ -618,3 +618,10 @@ func TestClientHeaderNotShared(t *testing.T) {
 		t.Errorf("tokens: got %q, want %q", tokens, want)
 	}
 }
+
+func setValue[T any](t *testing.T, p *T, v T) {
+	t.Helper()
+	old := *p
+	*p = v
+	t.Cleanup(func() { *p = old })
+}

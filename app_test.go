@@ -1,9 +1,12 @@
 package kintone
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"reflect"
 	"testing"
+	"testing/synctest"
 	"time"
 )
 
@@ -343,4 +346,85 @@ func TestClientMoveApp(t *testing.T) {
 			assertRequest(t, got, http.MethodPost, "/k/v1/app/move.json", tc.wantBody)
 		})
 	}
+}
+
+func TestClientWaitForDeploy(t *testing.T) {
+	testCases := []struct {
+		name      string
+		responses []response
+		wantErr   string
+	}{
+		{
+			name: "success",
+			responses: []response{
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}, {"app": "2", "status": "SUCCESS"}]}`},
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}, {"app": "2", "status": "SUCCESS"}]}`},
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "SUCCESS"}, {"app": "2", "status": "SUCCESS"}]}`},
+			},
+		},
+		{
+			name: "failure",
+			responses: []response{
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}, {"app": "2", "status": "PROCESSING"}]}`},
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "FAIL"}, {"app": "2", "status": "CANCEL"}]}`},
+			},
+			wantErr: "kintone: deployment failed: app 1: FAIL, app 2: CANCEL",
+		},
+		{
+			name: "error response",
+			responses: []response{
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}]}`},
+				{http.StatusInternalServerError, `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`},
+			},
+			wantErr: "kintone: Test error. (status: 500, code: TEST_ERROR, id: abc123)",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				ts, requests := newSequenceServer(t, tc.responses...)
+				c := newTestClient(t, ts)
+				start := time.Now()
+				err := c.WaitForDeploy(t.Context(), []int64{1, 2})
+				if tc.wantErr == "" {
+					if err != nil {
+						t.Fatalf("WaitForDeploy returned error: %v", err)
+					}
+				} else if err == nil || err.Error() != tc.wantErr {
+					t.Fatalf("WaitForDeploy should return error %q but got: %v", tc.wantErr, err)
+				}
+				if got, want := time.Since(start), time.Duration(len(tc.responses)-1)*time.Second; got != want {
+					t.Errorf("elapsed time: got %v, want %v", got, want)
+				}
+				reqs := requests()
+				if len(reqs) != len(tc.responses) {
+					t.Fatalf("number of requests: got %d, want %d", len(reqs), len(tc.responses))
+				}
+				for _, req := range reqs {
+					assertRequest(t, &req, http.MethodGet, "/k/v1/preview/app/deploy.json", `{"apps": [1, 2]}`)
+				}
+			})
+		})
+	}
+}
+
+func TestClientWaitForDeployContextCanceled(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ts, requests := newSequenceServer(t,
+			response{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}]}`},
+		)
+		c := newTestClient(t, ts)
+		ctx, cancel := context.WithCancel(t.Context())
+		time.AfterFunc(500*time.Millisecond, cancel)
+		start := time.Now()
+		if err := c.WaitForDeploy(ctx, []int64{1}); !errors.Is(err, context.Canceled) {
+			t.Errorf("WaitForDeploy should return context.Canceled but got: %v", err)
+		}
+		if got, want := time.Since(start), 500*time.Millisecond; got != want {
+			t.Errorf("elapsed time: got %v, want %v", got, want)
+		}
+		if reqs := requests(); len(reqs) != 1 {
+			t.Errorf("number of requests: got %d, want %d", len(reqs), 1)
+		}
+	})
 }

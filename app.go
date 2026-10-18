@@ -2,6 +2,8 @@ package kintone
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -128,6 +130,42 @@ func (c *Client) GetDeployStatus(ctx context.Context, apps []int64) ([]AppDeploy
 		return nil, err
 	}
 	return result.Apps, nil
+}
+
+const deployPollInterval = time.Second
+
+// WaitForDeploy waits until the deployments of the apps finish, by polling
+// [Client.GetDeployStatus]. It returns an error if any of the deployments
+// fails or is canceled.
+func (c *Client) WaitForDeploy(ctx context.Context, apps []int64) error {
+	for {
+		statuses, err := c.GetDeployStatus(ctx, apps)
+		if err != nil {
+			return err
+		}
+		var processing bool
+		var failed []string
+		for _, s := range statuses {
+			switch s.Status {
+			case DeployStatusProcessing:
+				processing = true
+			case DeployStatusSuccess:
+			default:
+				failed = append(failed, fmt.Sprintf("app %d: %s", s.App, s.Status))
+			}
+		}
+		if !processing {
+			if len(failed) > 0 {
+				return fmt.Errorf("kintone: deployment failed: %s", strings.Join(failed, ", "))
+			}
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(deployPollInterval):
+		}
+	}
 }
 
 // GetAppSettingsRequest is the request to get settings of an app.

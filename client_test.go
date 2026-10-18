@@ -431,6 +431,12 @@ func TestClientDoError(t *testing.T) {
 			want:    &Error{StatusCode: http.StatusServiceUnavailable},
 			wantMsg: "kintone: Service Unavailable (status: 503)",
 		},
+		{
+			name:    "unknown status",
+			status:  599,
+			want:    &Error{StatusCode: 599},
+			wantMsg: "kintone: unknown error (status: 599)",
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

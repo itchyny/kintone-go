@@ -250,8 +250,10 @@ func (e *Error) Error() string {
 	sb.WriteString("kintone: ")
 	if e.Message != "" {
 		sb.WriteString(e.Message)
+	} else if text := http.StatusText(e.StatusCode); text != "" {
+		sb.WriteString(text)
 	} else {
-		sb.WriteString(http.StatusText(e.StatusCode))
+		sb.WriteString("unknown error")
 	}
 	fmt.Fprintf(&sb, " (status: %d", e.StatusCode)
 	if e.Code != "" {

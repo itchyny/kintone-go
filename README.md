@@ -46,6 +46,9 @@ When reading records, the field value is decoded into the Go type of the field t
 such as `string`, `[]string`, `kintone.Entity`, `[]kintone.Entity`,
 `[]kintone.FileInfo` and `[]kintone.SubtableRow`.
 
+<details>
+<summary>Example</summary>
+
 ```go
 record, err := client.GetRecord(ctx, app, id)
 if err != nil {
@@ -66,7 +69,12 @@ for _, record := range res.Records {
 }
 ```
 
+</details>
+
 When writing records, the field type can be omitted.
+
+<details>
+<summary>Example</summary>
 
 ```go
 added, err := client.AddRecord(ctx, app, kintone.Record{
@@ -89,6 +97,8 @@ if err != nil {
 err = client.DeleteRecords(ctx, app, []int64{added.ID}, []int64{revision})
 ```
 
+</details>
+
 `AddRecords`, `UpdateRecords` and `UpsertRecords` process multiple records in a request.
 `UpdateRecord`, `UpdateRecords` and `UpsertRecords` can also specify a record by
 the value of a field with `UpdateKey` instead of `ID`.
@@ -97,6 +107,9 @@ the value of a field with `UpdateKey` instead of `ID`.
 
 `AllRecords` iterates over all the records matching the query using a cursor.
 The cursor is deleted when the iteration stops early.
+
+<details>
+<summary>Example</summary>
 
 ```go
 for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{
@@ -110,6 +123,8 @@ for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{
 }
 ```
 
+</details>
+
 When kintone returns a warning in the `X-Cybozu-Warning` response header, `AllRecords` yields a `*kintone.WarningError` after all the records.
 `GetRecords` and `CreateCursor` return the warning in `Warning` of the response.
 
@@ -117,6 +132,9 @@ When kintone returns a warning in the `X-Cybozu-Warning` response header, `AllRe
 
 `AllRecordsByID` iterates over all the records in ascending order of the record ID without a cursor,
 using the condition on `$id` to get the next records.
+
+<details>
+<summary>Example</summary>
 
 ```go
 for record, err := range client.AllRecordsByID(ctx, kintone.AllRecordsByIDRequest{
@@ -130,10 +148,15 @@ for record, err := range client.AllRecordsByID(ctx, kintone.AllRecordsByIDReques
 }
 ```
 
+</details>
+
 ### Apps
 
 App settings are changed in the preview environment, and deployed to the production environment by `DeployApps`.
 The getters of the settings get the production settings, or the preview settings with `Preview: true`.
+
+<details>
+<summary>Example</summary>
 
 ```go
 added, err := client.AddApp(ctx, kintone.AddAppRequest{Name: "Deals"})
@@ -165,9 +188,14 @@ if err := client.DeployApps(ctx, []kintone.AppDeployment{{App: added.App}}); err
 err = client.WaitForDeploy(ctx, []int64{added.App})
 ```
 
+</details>
+
 ### Spaces
 
 `AddSpaceFromTemplate` adds a space from a space template, and `AddSpace` adds a public single thread space by the name.
+
+<details>
+<summary>Example</summary>
 
 ```go
 space, err := client.GetSpace(ctx, spaceID)
@@ -200,9 +228,14 @@ members = append(members, kintone.SpaceMember{
 err = client.UpdateSpaceMembers(ctx, space.ID, members)
 ```
 
+</details>
+
 To access the apps and the spaces in a guest space, create the client with `kintone.WithGuestSpace`.
 
 ### Plugins
+
+<details>
+<summary>Example</summary>
 
 ```go
 f, err := os.Open("plugin.zip")
@@ -224,10 +257,15 @@ if _, err := client.AddAppPlugins(ctx, app, []string{plugin.ID}, 0); err != nil 
 err = client.DeployApps(ctx, []kintone.AppDeployment{{App: app}})
 ```
 
+</details>
+
 ### Files
 
 `UploadFile` uploads a file and returns the file key, which can be set to an attachment field.
 `DownloadFile` downloads the file of the file key in an attachment field.
+
+<details>
+<summary>Example</summary>
 
 ```go
 f, err := os.Open("report.pdf")
@@ -264,9 +302,14 @@ defer out.Close()
 _, err = io.Copy(out, body)
 ```
 
+</details>
+
 ### API info
 
 `GetAPIs` and `GetAPISchema` get the list of the kintone REST APIs and their JSON Schemas.
+
+<details>
+<summary>Example</summary>
 
 ```go
 apis, err := client.GetAPIs(ctx)
@@ -281,6 +324,8 @@ for id := range apis.APIs {
 	fmt.Println(id, schema.HTTPMethod, schema.Path)
 }
 ```
+
+</details>
 
 ### Errors
 

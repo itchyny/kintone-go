@@ -80,6 +80,9 @@ const (
 	EntityTypeUser         EntityType = "USER"
 	EntityTypeGroup        EntityType = "GROUP"
 	EntityTypeOrganization EntityType = "ORGANIZATION"
+	EntityTypeFieldEntity  EntityType = "FIELD_ENTITY"
+	EntityTypeCreator      EntityType = "CREATOR"
+	EntityTypeCustomField  EntityType = "CUSTOM_FIELD"
 )
 
 // FileInfo is a file of an attachment field.

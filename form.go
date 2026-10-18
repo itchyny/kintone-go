@@ -48,10 +48,10 @@ type FieldOption struct {
 	Index int    `json:"index,string"`
 }
 
-// FieldEntity is a user, department or group of the options of a user,
-// department or group selection field.
+// FieldEntity is an entity specified by the type and the code, such as a user,
+// department or group of the options of a user selection field.
 type FieldEntity struct {
-	Code string     `json:"code"`
+	Code string     `json:"code,omitempty"`
 	Type EntityType `json:"type"`
 }
 

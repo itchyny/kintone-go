@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -217,7 +218,7 @@ func (c *Client) do[T any](ctx context.Context, method, path string, params any)
 // the response body. Non-2xx responses are returned as *Error.
 func (c *Client) send(req *http.Request) (*http.Response, error) {
 	for k, vs := range c.header {
-		req.Header[k] = vs
+		req.Header[k] = slices.Clone(vs)
 	}
 	res, err := c.httpClient.Do(req)
 	if err != nil {

@@ -581,3 +581,27 @@ func TestClientNilHTTPClient(t *testing.T) {
 		t.Errorf("do returned error: %v", err)
 	}
 }
+
+func TestClientHeaderNotShared(t *testing.T) {
+	var tokens []string
+	httpClient := &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			tokens = append(tokens, req.Header.Get("X-Cybozu-API-Token"))
+			req.Header["X-Cybozu-Api-Token"][0] = "modified"
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{}`)),
+				Request:    req,
+			}, nil
+		}),
+	}
+	c := newClient(t, "https://example.cybozu.com", WithAPIToken("token1"), WithHTTPClient(httpClient))
+	for range 2 {
+		if _, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil); err != nil {
+			t.Fatalf("do returned error: %v", err)
+		}
+	}
+	if want := []string{"token1", "token1"}; !reflect.DeepEqual(tokens, want) {
+		t.Errorf("tokens: got %q, want %q", tokens, want)
+	}
+}

@@ -224,6 +224,48 @@ func (c *Client) doHeader[T any](ctx context.Context, method, path string, param
 	return result, res.Header, nil
 }
 
+// apiRequest is a request of an API. The response is decoded by decode, or
+// ignored if decode is nil.
+type apiRequest[T any] struct {
+	method string
+	path   string
+	params any
+	decode func(json.RawMessage) (T, error)
+}
+
+// call sends the API request and decodes the response.
+func (c *Client) call[T any](ctx context.Context, r apiRequest[T]) (T, error) {
+	var result T
+	if r.decode == nil {
+		_, err := c.do[struct{}](ctx, r.method, r.path, r.params)
+		return result, err
+	}
+	raw, err := c.do[json.RawMessage](ctx, r.method, r.path, r.params)
+	if err != nil {
+		return result, err
+	}
+	return r.decode(raw)
+}
+
+// decodeWith returns a function to decode the response as W, and convert it
+// with f.
+func decodeWith[W, T any](f func(W) (T, error)) func(json.RawMessage) (T, error) {
+	return func(b json.RawMessage) (T, error) {
+		var w W
+		if err := json.Unmarshal(b, &w); err != nil {
+			var result T
+			return result, fmt.Errorf("kintone: decode response: %w", err)
+		}
+		return f(w)
+	}
+}
+
+func decodeRevision(r struct {
+	Revision int64 `json:"revision,string"`
+}) (int64, error) {
+	return r.Revision, nil
+}
+
 // send the request with authentication headers. The caller must close
 // the response body. Non-2xx responses are returned as *Error.
 func (c *Client) send(req *http.Request) (*http.Response, error) {

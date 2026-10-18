@@ -68,3 +68,95 @@ func TestClientAddAppPlugins(t *testing.T) {
 		t.Errorf("revision: got %d, want %d", revision, 4)
 	}
 }
+
+func TestClientGetPlugins(t *testing.T) {
+	testCases := []struct {
+		name     string
+		req      GetPluginsRequest
+		opts     []Option
+		wantBody string
+	}{
+		{
+			name:     "all parameters",
+			req:      GetPluginsRequest{Offset: 10, Limit: 20, IDs: []string{"abcdefghijklmnopabcdefghijklmnop"}},
+			wantBody: `{"offset": 10, "limit": 20, "ids": ["abcdefghijklmnopabcdefghijklmnop"]}`,
+		},
+		{
+			name:     "guest space is not used",
+			opts:     []Option{WithGuestSpace(4)},
+			wantBody: `{}`,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, got := newTestServer(t, http.StatusOK, `{
+				"plugins": [
+					{
+						"id": "abcdefghijklmnopabcdefghijklmnop",
+						"name": "Calendar",
+						"description": "Shows records in a calendar.",
+						"isMarketPlugin": true,
+						"version": "1.2.0"
+					}
+				]
+			}`)
+			c := newTestClient(t, ts, tc.opts...)
+			plugins, err := c.GetPlugins(t.Context(), tc.req)
+			if err != nil {
+				t.Fatalf("GetPlugins returned error: %v", err)
+			}
+			assertRequest(t, got, http.MethodGet, "/k/v1/plugins.json", tc.wantBody)
+			want := []Plugin{
+				{
+					ID:             "abcdefghijklmnopabcdefghijklmnop",
+					Name:           "Calendar",
+					Description:    "Shows records in a calendar.",
+					IsMarketPlugin: true,
+					Version:        "1.2.0",
+				},
+			}
+			if !reflect.DeepEqual(plugins, want) {
+				t.Errorf("plugins: got %+v, want %+v", plugins, want)
+			}
+		})
+	}
+}
+
+func TestClientGetRequiredPlugins(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{
+		"plugins": [
+			{"id": "abcdefghijklmnopabcdefghijklmnop", "name": "Calendar", "isMarketPlugin": false},
+			{"id": "ponmlkjihgfedcbaponmlkjihgfedcba", "name": null, "isMarketPlugin": true}
+		]
+	}`)
+	c := newTestClient(t, ts, WithGuestSpace(4))
+	plugins, err := c.GetRequiredPlugins(t.Context(), GetRequiredPluginsRequest{Limit: 50})
+	if err != nil {
+		t.Fatalf("GetRequiredPlugins returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodGet, "/k/v1/plugins/required.json", `{"limit": 50}`)
+	want := []Plugin{
+		{ID: "abcdefghijklmnopabcdefghijklmnop", Name: "Calendar"},
+		{ID: "ponmlkjihgfedcbaponmlkjihgfedcba", IsMarketPlugin: true},
+	}
+	if !reflect.DeepEqual(plugins, want) {
+		t.Errorf("plugins: got %+v, want %+v", plugins, want)
+	}
+}
+
+func TestClientGetPluginApps(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{
+		"apps": [{"id": "1", "name": "Deals"}, {"id": "5", "name": "Invoices"}]
+	}`)
+	c := newTestClient(t, ts, WithGuestSpace(4))
+	apps, err := c.GetPluginApps(t.Context(), GetPluginAppsRequest{ID: "abcdefghijklmnopabcdefghijklmnop", Offset: 100, Limit: 500})
+	if err != nil {
+		t.Fatalf("GetPluginApps returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodGet, "/k/v1/plugin/apps.json",
+		`{"id": "abcdefghijklmnopabcdefghijklmnop", "offset": 100, "limit": 500}`)
+	want := []PluginApp{{ID: 1, Name: "Deals"}, {ID: 5, Name: "Invoices"}}
+	if !reflect.DeepEqual(apps, want) {
+		t.Errorf("apps: got %+v, want %+v", apps, want)
+	}
+}

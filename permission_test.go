@@ -33,19 +33,19 @@ func TestClientEvaluateRecordPermissions(t *testing.T) {
 		t.Fatalf("EvaluateRecordPermissions returned error: %v", err)
 	}
 	assertRequest(t, got, http.MethodGet, "/k/v1/records/acl/evaluate.json", `{"app": 1, "ids": [2, 3]}`)
-	want := []RecordPermission{
+	want := []RecordAccess{
 		{
 			ID:     2,
-			Record: RecordRights{Viewable: true},
-			Fields: map[string]FieldRights{
+			Record: RecordAccessRights{Viewable: true},
+			Fields: map[string]FieldAccessRights{
 				"title": {Viewable: true},
 				"note":  {},
 			},
 		},
 		{
 			ID:     3,
-			Record: RecordRights{Viewable: true, Editable: true, Deletable: true},
-			Fields: map[string]FieldRights{
+			Record: RecordAccessRights{Viewable: true, Editable: true, Deletable: true},
+			Fields: map[string]FieldAccessRights{
 				"title": {Viewable: true, Editable: true},
 				"note":  {Viewable: true, Editable: true},
 			},

@@ -321,6 +321,19 @@ func (e *Error) Error() string {
 
 func parseError(res *http.Response) error {
 	b, err := io.ReadAll(io.LimitReader(res.Body, 1<<20))
+	if err == nil {
+		var bulk struct {
+			Results []json.RawMessage `json:"results"`
+		}
+		if json.Unmarshal(b, &bulk) == nil {
+			for i, r := range bulk.Results {
+				e := &Error{StatusCode: res.StatusCode, Header: res.Header}
+				if json.Unmarshal(r, e) == nil && (e.Code != "" || e.Message != "") {
+					return &BulkError{Index: i, Err: e}
+				}
+			}
+		}
+	}
 	e := &Error{StatusCode: res.StatusCode, Header: res.Header}
 	if err == nil && json.Unmarshal(b, e) != nil {
 		*e = Error{StatusCode: res.StatusCode, Header: res.Header, Message: truncate(strings.TrimSpace(string(b)), 200)}
@@ -337,6 +350,22 @@ func truncate(s string, n int) string {
 		i++
 	}
 	return s
+}
+
+// BulkError is an error of a bulk request. Index is the index of the request
+// that failed, and Err is its error.
+type BulkError struct {
+	Index int
+	Err   *Error
+}
+
+func (e *BulkError) Error() string {
+	return fmt.Sprintf("kintone: bulk request %d: %s", e.Index, strings.TrimPrefix(e.Err.Error(), "kintone: "))
+}
+
+// Unwrap returns the error of the request that failed.
+func (e *BulkError) Unwrap() error {
+	return e.Err
 }
 
 // IsErrorCode reports whether err is an *Error with the code.

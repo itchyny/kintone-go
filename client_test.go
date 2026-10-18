@@ -491,6 +491,55 @@ func TestClientDoErrorHeader(t *testing.T) {
 	}
 }
 
+func TestClientDoBulkError(t *testing.T) {
+	ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-ConcurrencyLimit-Limit", "100")
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"results": [{}, {"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}, {}]}`)
+	}))
+	c := newTestClient(t, ts)
+	_, err := c.do[struct{}](t.Context(), http.MethodPost, "bulkRequest.json", map[string]any{})
+	var bulkErr *BulkError
+	if !errors.As(err, &bulkErr) {
+		t.Fatalf("do should return *BulkError but got: %v", err)
+	}
+	if bulkErr.Index != 1 {
+		t.Errorf("index: got %d, want %d", bulkErr.Index, 1)
+	}
+	got := *bulkErr.Err
+	got.Header = nil
+	if want := (Error{StatusCode: http.StatusNotFound, Code: "TEST_ERROR", ID: "abc123", Message: "Test error."}); !reflect.DeepEqual(got, want) {
+		t.Errorf("error: got %+v, want %+v", got, want)
+	}
+	if bulkErr.Err.Header.Get("X-ConcurrencyLimit-Limit") != "100" {
+		t.Errorf("header should be set: %v", bulkErr.Err.Header)
+	}
+	if want := "kintone: bulk request 1: Test error. (status: 404, code: TEST_ERROR, id: abc123)"; err.Error() != want {
+		t.Errorf("error message: got %q, want %q", err.Error(), want)
+	}
+	var e *Error
+	if !errors.As(err, &e) || e != bulkErr.Err {
+		t.Errorf("errors.As should find *Error in *BulkError but got: %v", e)
+	}
+	if !IsErrorCode(err, "TEST_ERROR") {
+		t.Error("IsErrorCode should find the code in *BulkError")
+	}
+}
+
+func TestClientDoBulkErrorWithoutError(t *testing.T) {
+	ts, _ := newTestServer(t, http.StatusBadRequest, `{"results": [{}, {}]}`)
+	c := newTestClient(t, ts)
+	_, err := c.do[struct{}](t.Context(), http.MethodPost, "bulkRequest.json", map[string]any{})
+	var bulkErr *BulkError
+	if errors.As(err, &bulkErr) {
+		t.Errorf("do should not return *BulkError without an error result but got: %v", err)
+	}
+	var e *Error
+	if !errors.As(err, &e) || e.StatusCode != http.StatusBadRequest {
+		t.Errorf("do should return *Error but got: %v", err)
+	}
+}
+
 func TestIsErrorCode(t *testing.T) {
 	err := &Error{StatusCode: http.StatusNotFound, Code: "GAIA_RE01"}
 	testCases := []struct {

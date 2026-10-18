@@ -112,6 +112,46 @@ for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{
 
 `CreateCursor`, `GetRecordsByCursor` and `DeleteCursor` are also available to use the cursor directly.
 
+### Files
+
+`UploadFile` uploads a file and returns the file key, which can be set to an attachment field.
+`DownloadFile` downloads the file of the file key in an attachment field.
+
+```go
+f, err := os.Open("report.pdf")
+if err != nil {
+	return err
+}
+defer f.Close()
+fileKey, err := client.UploadFile(ctx, "report.pdf", f)
+if err != nil {
+	return err
+}
+_, err = client.AddRecord(ctx, app, kintone.Record{
+	"attachments": {Value: []kintone.FileInfo{{FileKey: fileKey}}},
+})
+if err != nil {
+	return err
+}
+
+record, err := client.GetRecord(ctx, app, id)
+if err != nil {
+	return err
+}
+file := record["attachments"].Value.([]kintone.FileInfo)[0]
+body, _, err := client.DownloadFile(ctx, file.FileKey)
+if err != nil {
+	return err
+}
+defer body.Close()
+out, err := os.Create(file.Name)
+if err != nil {
+	return err
+}
+defer out.Close()
+_, err = io.Copy(out, body)
+```
+
 ### Errors
 
 Error responses from kintone are returned as `*kintone.Error`,

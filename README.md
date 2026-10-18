@@ -112,6 +112,50 @@ for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{
 
 `CreateCursor`, `GetRecordsByCursor` and `DeleteCursor` are also available to use the cursor directly.
 
+### Apps
+
+App settings are changed in the preview environment, and deployed to the production environment by `DeployApps`.
+The getters of the settings get the production settings, or the preview settings with `Preview: true`.
+
+```go
+added, err := client.AddApp(ctx, kintone.AddAppRequest{Name: "Deals"})
+if err != nil {
+	return err
+}
+_, err = client.AddFormFields(ctx, added.App, map[string]kintone.FieldProperty{
+	"title": {Type: kintone.FieldTypeSingleLineText, Code: "title", Label: "Title", Required: new(true)},
+}, 0)
+if err != nil {
+	return err
+}
+
+settings, err := client.GetGeneralSettings(ctx, kintone.GetAppSettingsRequest{App: added.App, Preview: true})
+if err != nil {
+	return err
+}
+_, err = client.UpdateGeneralSettings(ctx, added.App, kintone.GeneralSettings{
+	Description:    "Deals and activities.",
+	EnableComments: new(false),
+}, settings.Revision)
+if err != nil {
+	return err
+}
+
+if err := client.DeployApps(ctx, []kintone.AppDeployment{{App: added.App}}); err != nil {
+	return err
+}
+for {
+	statuses, err := client.GetDeployStatus(ctx, []int64{added.App})
+	if err != nil {
+		return err
+	}
+	if statuses[0].Status != kintone.DeployStatusProcessing {
+		break
+	}
+	time.Sleep(time.Second)
+}
+```
+
 ### Files
 
 `UploadFile` uploads a file and returns the file key, which can be set to an attachment field.

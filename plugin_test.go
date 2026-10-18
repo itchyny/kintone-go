@@ -196,3 +196,71 @@ func TestClientDeletePlugin(t *testing.T) {
 	}
 	assertRequest(t, got, http.MethodDelete, "/k/v1/plugin.json", `{"id": "abcdefghijklmnopabcdefghijklmnop"}`)
 }
+
+func TestClientGetAppPluginConfig(t *testing.T) {
+	testCases := []struct {
+		name     string
+		req      GetAppPluginConfigRequest
+		opts     []Option
+		wantPath string
+	}{
+		{
+			name:     "production",
+			req:      GetAppPluginConfigRequest{App: 1, ID: "abcdefghijklmnopabcdefghijklmnop"},
+			wantPath: "/k/v1/app/plugin/config.json",
+		},
+		{
+			name:     "preview in guest space",
+			req:      GetAppPluginConfigRequest{App: 1, ID: "abcdefghijklmnopabcdefghijklmnop", Preview: true},
+			opts:     []Option{WithGuestSpace(4)},
+			wantPath: "/k/guest/4/v1/preview/app/plugin/config.json",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, got := newTestServer(t, http.StatusOK, `{"config": {"key1": "value1", "key2": ""}, "revision": "3"}`)
+			c := newTestClient(t, ts, tc.opts...)
+			res, err := c.GetAppPluginConfig(t.Context(), tc.req)
+			if err != nil {
+				t.Fatalf("GetAppPluginConfig returned error: %v", err)
+			}
+			assertRequest(t, got, http.MethodGet, tc.wantPath, `{"app": 1, "id": "abcdefghijklmnopabcdefghijklmnop"}`)
+			want := &AppPluginConfig{Config: map[string]string{"key1": "value1", "key2": ""}, Revision: 3}
+			if !reflect.DeepEqual(res, want) {
+				t.Errorf("response: got %+v, want %+v", res, want)
+			}
+		})
+	}
+}
+
+func TestClientUpdateAppPluginConfig(t *testing.T) {
+	testCases := []struct {
+		name     string
+		config   map[string]string
+		wantBody string
+	}{
+		{
+			name:     "config",
+			config:   map[string]string{"key1": "value1", "key2": `{"nested":true}`},
+			wantBody: `{"app": 1, "id": "abcdefghijklmnopabcdefghijklmnop", "config": {"key1": "value1", "key2": "{\"nested\":true}"}}`,
+		},
+		{
+			name:     "nil config",
+			wantBody: `{"app": 1, "id": "abcdefghijklmnopabcdefghijklmnop", "config": {}}`,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, got := newTestServer(t, http.StatusOK, `{"revision": "4"}`)
+			c := newTestClient(t, ts)
+			revision, err := c.UpdateAppPluginConfig(t.Context(), 1, "abcdefghijklmnopabcdefghijklmnop", tc.config)
+			if err != nil {
+				t.Fatalf("UpdateAppPluginConfig returned error: %v", err)
+			}
+			assertRequest(t, got, http.MethodPut, "/k/v1/preview/app/plugin/config.json", tc.wantBody)
+			if revision != 4 {
+				t.Errorf("revision: got %d, want %d", revision, 4)
+			}
+		})
+	}
+}

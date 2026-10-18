@@ -139,3 +139,39 @@ func (c *Client) DeletePlugin(ctx context.Context, id string) error {
 	_, err := c.withoutGuestSpace().delete[struct{}](ctx, "plugin.json", params)
 	return err
 }
+
+// GetAppPluginConfigRequest is the request of [Client.GetAppPluginConfig].
+// ID is the plugin ID. If Preview is true, the config in the preview
+// environment is returned.
+type GetAppPluginConfigRequest struct {
+	App     int64  `json:"app"`
+	ID      string `json:"id"`
+	Preview bool   `json:"-"`
+}
+
+// AppPluginConfig is the config of a plugin added to an app.
+type AppPluginConfig struct {
+	Config   map[string]string `json:"config"`
+	Revision int64             `json:"revision,string"`
+}
+
+// GetAppPluginConfig gets the config of a plugin added to an app. This uses an
+// API in the API lab of kintone.
+func (c *Client) GetAppPluginConfig(ctx context.Context, req GetAppPluginConfigRequest) (*AppPluginConfig, error) {
+	return c.getAppSettings[AppPluginConfig](ctx, "app/plugin/config.json", req.Preview, req)
+}
+
+// UpdateAppPluginConfig updates the config of a plugin added to an app in the
+// preview environment and returns the new revision. Nil config is sent as an
+// empty object. This uses an API in the API lab of kintone.
+func (c *Client) UpdateAppPluginConfig(ctx context.Context, app int64, id string, config map[string]string) (int64, error) {
+	if config == nil {
+		config = map[string]string{}
+	}
+	params := struct {
+		App    int64             `json:"app"`
+		ID     string            `json:"id"`
+		Config map[string]string `json:"config"`
+	}{app, id, config}
+	return c.updateAppSettings(ctx, http.MethodPut, "app/plugin/config.json", params)
+}

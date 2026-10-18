@@ -1,6 +1,9 @@
 package kintone
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // RecordAccess is the access rights of the user on a record and its fields.
 type RecordAccess struct {
@@ -35,4 +38,122 @@ func (c *Client) EvaluateRecordPermissions(ctx context.Context, app int64, ids [
 		return nil, err
 	}
 	return result.Rights, nil
+}
+
+// AppPermissions is the app permissions of an app, in order of priority.
+type AppPermissions struct {
+	Rights   []AppRight `json:"rights"`
+	Revision int64      `json:"revision,string,omitempty"`
+}
+
+// AppRight is an app permission of an entity.
+type AppRight struct {
+	Entity           FieldEntity `json:"entity"`
+	IncludeSubs      bool        `json:"includeSubs,omitempty"`
+	AppEditable      bool        `json:"appEditable,omitempty"`
+	RecordViewable   bool        `json:"recordViewable,omitempty"`
+	RecordAddable    bool        `json:"recordAddable,omitempty"`
+	RecordEditable   bool        `json:"recordEditable,omitempty"`
+	RecordDeletable  bool        `json:"recordDeletable,omitempty"`
+	RecordImportable bool        `json:"recordImportable,omitempty"`
+	RecordExportable bool        `json:"recordExportable,omitempty"`
+}
+
+// GetAppPermissions gets the app permissions of an app. Lang of the request is
+// not used.
+func (c *Client) GetAppPermissions(ctx context.Context, req GetAppSettingsRequest) (*AppPermissions, error) {
+	params := struct {
+		App int64 `json:"app"`
+	}{req.App}
+	return c.getAppSettings[AppPermissions](ctx, "app/acl.json", req.Preview, params)
+}
+
+// UpdateAppPermissions updates the app permissions of an app in the preview
+// environment and returns the new revision. The revision is not checked if
+// revision is zero.
+func (c *Client) UpdateAppPermissions(ctx context.Context, app int64, rights []AppRight, revision int64) (int64, error) {
+	params := struct {
+		App      int64      `json:"app"`
+		Rights   []AppRight `json:"rights"`
+		Revision int64      `json:"revision,omitempty"`
+	}{app, rights, revision}
+	return c.updateAppSettings(ctx, http.MethodPut, "app/acl.json", params)
+}
+
+// RecordPermissions is the record permissions of an app, in order of priority.
+type RecordPermissions struct {
+	Rights   []RecordRight `json:"rights"`
+	Revision int64         `json:"revision,string,omitempty"`
+}
+
+// RecordRight is a record permission of the records matching FilterCond.
+type RecordRight struct {
+	FilterCond string              `json:"filterCond,omitempty"`
+	Entities   []RecordRightEntity `json:"entities"`
+}
+
+// RecordRightEntity is a record permission of an entity.
+type RecordRightEntity struct {
+	Entity      FieldEntity `json:"entity"`
+	Viewable    bool        `json:"viewable,omitempty"`
+	Editable    bool        `json:"editable,omitempty"`
+	Deletable   bool        `json:"deletable,omitempty"`
+	IncludeSubs bool        `json:"includeSubs,omitempty"`
+}
+
+// GetRecordPermissions gets the record permissions of an app.
+func (c *Client) GetRecordPermissions(ctx context.Context, req GetAppSettingsRequest) (*RecordPermissions, error) {
+	return c.getAppSettings[RecordPermissions](ctx, "record/acl.json", req.Preview, req)
+}
+
+// UpdateRecordPermissions updates the record permissions of an app in the
+// preview environment and returns the new revision. The revision is not
+// checked if revision is zero.
+func (c *Client) UpdateRecordPermissions(ctx context.Context, app int64, rights []RecordRight, revision int64) (int64, error) {
+	params := struct {
+		App      int64         `json:"app"`
+		Rights   []RecordRight `json:"rights"`
+		Revision int64         `json:"revision,omitempty"`
+	}{app, rights, revision}
+	return c.updateAppSettings(ctx, http.MethodPut, "record/acl.json", params)
+}
+
+// FieldPermissions is the field permissions of an app.
+type FieldPermissions struct {
+	Rights   []FieldRight `json:"rights"`
+	Revision int64        `json:"revision,string,omitempty"`
+}
+
+// FieldRight is the permissions of the field of Code, in order of priority.
+type FieldRight struct {
+	Code     string             `json:"code"`
+	Entities []FieldRightEntity `json:"entities"`
+}
+
+// FieldRightEntity is a field permission of an entity.
+type FieldRightEntity struct {
+	Accessibility string      `json:"accessibility"`
+	Entity        FieldEntity `json:"entity"`
+	IncludeSubs   bool        `json:"includeSubs,omitempty"`
+}
+
+// GetFieldPermissions gets the field permissions of an app. Lang of the
+// request is not used.
+func (c *Client) GetFieldPermissions(ctx context.Context, req GetAppSettingsRequest) (*FieldPermissions, error) {
+	params := struct {
+		App int64 `json:"app"`
+	}{req.App}
+	return c.getAppSettings[FieldPermissions](ctx, "field/acl.json", req.Preview, params)
+}
+
+// UpdateFieldPermissions updates the field permissions of an app in the
+// preview environment and returns the new revision. The revision is not
+// checked if revision is zero.
+func (c *Client) UpdateFieldPermissions(ctx context.Context, app int64, rights []FieldRight, revision int64) (int64, error) {
+	params := struct {
+		App      int64        `json:"app"`
+		Rights   []FieldRight `json:"rights"`
+		Revision int64        `json:"revision,omitempty"`
+	}{app, rights, revision}
+	return c.updateAppSettings(ctx, http.MethodPut, "field/acl.json", params)
 }

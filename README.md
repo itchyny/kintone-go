@@ -193,6 +193,28 @@ err = client.UpdateSpaceMembers(ctx, space.ID, members)
 
 To access the apps and the spaces in a guest space, create the client with `kintone.WithGuestSpace`.
 
+### Plugins
+
+```go
+f, err := os.Open("plugin.zip")
+if err != nil {
+	return err
+}
+defer f.Close()
+fileKey, err := client.UploadFile(ctx, "plugin.zip", f)
+if err != nil {
+	return err
+}
+plugin, err := client.AddPlugin(ctx, fileKey)
+if err != nil {
+	return err
+}
+if _, err := client.AddAppPlugins(ctx, app, []string{plugin.ID}, 0); err != nil {
+	return err
+}
+err = client.DeployApps(ctx, []kintone.AppDeployment{{App: app}})
+```
+
 ### Files
 
 `UploadFile` uploads a file and returns the file key, which can be set to an attachment field.
@@ -231,6 +253,24 @@ if err != nil {
 }
 defer out.Close()
 _, err = io.Copy(out, body)
+```
+
+### API info
+
+`GetAPIs` and `GetAPISchema` get the list of the kintone REST APIs and their JSON Schemas.
+
+```go
+apis, err := client.GetAPIs(ctx)
+if err != nil {
+	return err
+}
+for id := range apis.APIs {
+	schema, err := client.GetAPISchema(ctx, id)
+	if err != nil {
+		return err
+	}
+	fmt.Println(id, schema.HTTPMethod, schema.Path)
+}
 ```
 
 ### Errors

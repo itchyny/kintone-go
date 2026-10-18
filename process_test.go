@@ -53,10 +53,10 @@ func TestClientGetProcessManagement(t *testing.T) {
 			want: &ProcessManagement{
 				Enable: new(true),
 				States: map[string]ProcessState{
-					"Open": {Name: "Open", Index: 0, Assignee: &ProcessAssignee{Type: "ONE", Entities: []ProcessEntity{}}},
+					"Open": {Name: "Open", Index: 0, Assignee: &ProcessAssignee{Type: "ONE", Entities: []TargetEntity{}}},
 					"Review": {Name: "Review", Index: 1, Assignee: &ProcessAssignee{
 						Type: "ANY",
-						Entities: []ProcessEntity{
+						Entities: []TargetEntity{
 							{Entity: FieldEntity{Type: EntityTypeUser, Code: "alice"}},
 							{Entity: FieldEntity{Type: EntityTypeOrganization, Code: "dev"}, IncludeSubs: true},
 							{Entity: FieldEntity{Type: EntityTypeCreator}},
@@ -67,7 +67,7 @@ func TestClientGetProcessManagement(t *testing.T) {
 					{Name: "Submit", From: "Open", To: "Review", Type: "PRIMARY"},
 					{
 						Name: "Cancel", From: "Review", To: "Open", FilterCond: "amount > 100", Type: "SECONDARY",
-						ExecutableUser: &ExecutableUser{Entities: []ProcessEntity{
+						ExecutableUser: &ExecutableUser{Entities: []TargetEntity{
 							{Entity: FieldEntity{Type: EntityTypeFieldEntity, Code: "owner"}},
 						}},
 					},
@@ -115,7 +115,7 @@ func TestClientUpdateProcessManagement(t *testing.T) {
 					"Open": {Name: "Open", Index: 0},
 					"Done": {Name: "Done", Index: 1, Assignee: &ProcessAssignee{
 						Type: "ALL",
-						Entities: []ProcessEntity{
+						Entities: []TargetEntity{
 							{Entity: FieldEntity{Type: EntityTypeCreator}},
 							{Entity: FieldEntity{Type: EntityTypeCustomField, Code: "manager"}},
 						},

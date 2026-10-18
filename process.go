@@ -23,12 +23,13 @@ type ProcessState struct {
 
 // ProcessAssignee is the assignees of a status.
 type ProcessAssignee struct {
-	Type     string          `json:"type"`
-	Entities []ProcessEntity `json:"entities"`
+	Type     string         `json:"type"`
+	Entities []TargetEntity `json:"entities"`
 }
 
-// ProcessEntity is an entity of the assignees or the executable users.
-type ProcessEntity struct {
+// TargetEntity is an entity with whether to include the sub organizations,
+// used for the assignees, the executable users and the notification targets.
+type TargetEntity struct {
 	Entity      FieldEntity `json:"entity"`
 	IncludeSubs bool        `json:"includeSubs,omitempty"`
 }
@@ -46,7 +47,7 @@ type ProcessAction struct {
 
 // ExecutableUser is the users who can execute an action.
 type ExecutableUser struct {
-	Entities []ProcessEntity `json:"entities"`
+	Entities []TargetEntity `json:"entities"`
 }
 
 // GetProcessManagement gets the process management settings of an app.

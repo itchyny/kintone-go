@@ -50,6 +50,11 @@ func NewClient(baseURL string, opts ...Option) (*Client, error) {
 	for _, opt := range opts {
 		opt(c)
 	}
+	httpClient := *c.httpClient
+	httpClient.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	c.httpClient = &httpClient
 	return c, nil
 }
 
@@ -110,7 +115,8 @@ func basicCredential(username, password string) string {
 	return base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
 }
 
-// WithHTTPClient sets the HTTP client used for requests.
+// WithHTTPClient sets the HTTP client used for requests. The client does not
+// follow redirects, so that the credentials are not sent to other hosts.
 func WithHTTPClient(httpClient *http.Client) Option {
 	return func(c *Client) {
 		c.httpClient = httpClient

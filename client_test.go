@@ -531,3 +531,40 @@ func TestClientMethods(t *testing.T) {
 		})
 	}
 }
+
+func TestClientRedirect(t *testing.T) {
+	var redirected bool
+	ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/elsewhere" {
+			redirected = true
+			return
+		}
+		http.Redirect(w, r, "http://other.example.com/elsewhere", http.StatusFound)
+	}))
+	for _, opts := range [][]Option{
+		{WithAPIToken("secret")},
+		{WithAPIToken("secret"), WithHTTPClient(&http.Client{Transport: ts.Client().Transport})},
+	} {
+		redirected = false
+		c := newTestClient(t, ts, opts...)
+		_, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil)
+		var e *Error
+		if !errors.As(err, &e) || e.StatusCode != http.StatusFound {
+			t.Errorf("do should return error of status 302 but got: %v", err)
+		}
+		if redirected {
+			t.Error("the redirect should not be followed")
+		}
+	}
+}
+
+func TestClientHTTPClientNotModified(t *testing.T) {
+	httpClient := &http.Client{}
+	newClient(t, "https://example.cybozu.com", WithHTTPClient(httpClient))
+	if httpClient.CheckRedirect != nil {
+		t.Error("the HTTP client should not be modified")
+	}
+	if http.DefaultClient.CheckRedirect != nil {
+		t.Error("the default HTTP client should not be modified")
+	}
+}

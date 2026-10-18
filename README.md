@@ -39,6 +39,21 @@ if err != nil {
 | `WithHTTPClient(httpClient)` | Use the HTTP client for requests. |
 | `WithUserAgent(userAgent)` | Set the User-Agent header. |
 
+### Records
+
+A record is a map from the field code to the field.
+When reading records, the field value is decoded into the Go type of the field type,
+such as `string`, `[]string`, `kintone.Entity`, `[]kintone.Entity`,
+`[]kintone.FileInfo` and `[]kintone.SubtableRow`.
+When writing records, the field type can be omitted.
+
+```go
+record := kintone.Record{
+	"title": {Value: "Hello"},
+	"users": {Value: []kintone.Entity{{Code: "alice"}}},
+}
+```
+
 ### Errors
 
 Error responses from kintone are returned as `*kintone.Error`,

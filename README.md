@@ -93,6 +93,25 @@ err = client.DeleteRecords(ctx, app, []int64{added.ID}, []int64{revision})
 `UpdateRecord`, `UpdateRecords` and `UpsertRecords` can also specify a record by
 the value of a field with `UpdateKey` instead of `ID`.
 
+### Cursor
+
+`AllRecords` iterates over all the records matching the query using a cursor.
+The cursor is deleted when the iteration stops early.
+
+```go
+for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{
+	App:   app,
+	Query: `status in ("Open") order by $id asc`,
+}) {
+	if err != nil {
+		return err
+	}
+	fmt.Println(record["$id"].Value)
+}
+```
+
+`CreateCursor`, `GetRecordsByCursor` and `DeleteCursor` are also available to use the cursor directly.
+
 ### Errors
 
 Error responses from kintone are returned as `*kintone.Error`,

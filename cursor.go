@@ -2,8 +2,11 @@ package kintone
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"iter"
 	"net/http"
+	"slices"
 	"time"
 )
 
@@ -116,4 +119,64 @@ type WarningError struct {
 
 func (e *WarningError) Error() string {
 	return "kintone: " + e.Message
+}
+
+// AllRecordsByIDRequest is the request of [Client.AllRecordsByID].
+// Condition is the query condition, without order by, limit and offset.
+type AllRecordsByIDRequest struct {
+	App       int64
+	Fields    []string
+	Condition string
+}
+
+var allRecordsByIDLimit = 500
+
+// AllRecordsByID iterates over the records in ascending order of the record
+// ID, using [Client.GetRecords] with the condition on the record ID instead of
+// a cursor. If Fields of the request does not contain $id, it is added. If any
+// of the responses has a warning, a [*WarningError] is yielded after all the
+// records.
+func (c *Client) AllRecordsByID(ctx context.Context, req AllRecordsByIDRequest) iter.Seq2[Record, error] {
+	return func(yield func(Record, error) bool) {
+		fields := req.Fields
+		if len(fields) > 0 && !slices.Contains(fields, "$id") {
+			fields = append(slices.Clip(fields), "$id")
+		}
+		var condition string
+		if req.Condition != "" {
+			condition = "(" + req.Condition + ") and "
+		}
+		lastID, warning := "0", ""
+		for {
+			res, err := c.GetRecords(ctx, GetRecordsRequest{
+				App:    req.App,
+				Fields: fields,
+				Query:  fmt.Sprintf("%s$id > %s order by $id asc limit %d", condition, lastID, allRecordsByIDLimit),
+			})
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			if warning == "" {
+				warning = res.Warning
+			}
+			for _, record := range res.Records {
+				id, ok := record["$id"].Value.(string)
+				if !ok {
+					yield(nil, errors.New("kintone: record without $id"))
+					return
+				}
+				lastID = id
+				if !yield(record, nil) {
+					return
+				}
+			}
+			if len(res.Records) < allRecordsByIDLimit {
+				break
+			}
+		}
+		if warning != "" {
+			yield(nil, &WarningError{Message: warning})
+		}
+	}
 }

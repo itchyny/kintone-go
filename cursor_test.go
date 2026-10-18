@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -351,5 +352,179 @@ func TestClientAllRecordsWarningBreak(t *testing.T) {
 		if record["$id"].Value == "2" {
 			break
 		}
+	}
+}
+
+func idRecords(ids ...string) string {
+	var records []string
+	for _, id := range ids {
+		records = append(records, `{"$id": {"type": "__ID__", "value": "`+id+`"}}`)
+	}
+	return `{"records": [` + strings.Join(records, ", ") + `], "totalCount": null}`
+}
+
+func TestClientAllRecordsByID(t *testing.T) {
+	setValue(t, &allRecordsByIDLimit, 2)
+	testCases := []struct {
+		name      string
+		req       AllRecordsByIDRequest
+		responses []response
+		wantIDs   []string
+		wantBody  []string
+	}{
+		{
+			name: "condition and fields",
+			req:  AllRecordsByIDRequest{App: 1, Fields: []string{"title"}, Condition: `status = "Open"`},
+			responses: []response{
+				{http.StatusOK, idRecords("3", "5")},
+				{http.StatusOK, idRecords("8", "9")},
+				{http.StatusOK, idRecords("12")},
+			},
+			wantIDs: []string{"3", "5", "8", "9", "12"},
+			wantBody: []string{
+				`{"app": 1, "fields": ["title", "$id"], "query": "(status = \"Open\") and $id > 0 order by $id asc limit 2"}`,
+				`{"app": 1, "fields": ["title", "$id"], "query": "(status = \"Open\") and $id > 5 order by $id asc limit 2"}`,
+				`{"app": 1, "fields": ["title", "$id"], "query": "(status = \"Open\") and $id > 9 order by $id asc limit 2"}`,
+			},
+		},
+		{
+			name: "no condition and fields with $id",
+			req:  AllRecordsByIDRequest{App: 1, Fields: []string{"$id", "title"}},
+			responses: []response{
+				{http.StatusOK, idRecords("1", "2")},
+				{http.StatusOK, idRecords()},
+			},
+			wantIDs: []string{"1", "2"},
+			wantBody: []string{
+				`{"app": 1, "fields": ["$id", "title"], "query": "$id > 0 order by $id asc limit 2"}`,
+				`{"app": 1, "fields": ["$id", "title"], "query": "$id > 2 order by $id asc limit 2"}`,
+			},
+		},
+		{
+			name:      "no records",
+			req:       AllRecordsByIDRequest{App: 1},
+			responses: []response{{http.StatusOK, idRecords()}},
+			wantBody:  []string{`{"app": 1, "query": "$id > 0 order by $id asc limit 2"}`},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, requests := newSequenceServer(t, tc.responses...)
+			c := newTestClient(t, ts)
+			ids, err := recordIDs(t, c.AllRecordsByID(t.Context(), tc.req))
+			if err != nil {
+				t.Fatalf("AllRecordsByID returned error: %v", err)
+			}
+			if !reflect.DeepEqual(ids, tc.wantIDs) {
+				t.Errorf("record IDs: got %v, want %v", ids, tc.wantIDs)
+			}
+			reqs := requests()
+			if len(reqs) != len(tc.wantBody) {
+				t.Fatalf("number of requests: got %d, want %d", len(reqs), len(tc.wantBody))
+			}
+			for i, req := range reqs {
+				assertRequest(t, &req, http.MethodGet, "/k/v1/records.json", tc.wantBody[i])
+			}
+		})
+	}
+}
+
+func TestClientAllRecordsByIDFieldsNotModified(t *testing.T) {
+	ts, _ := newSequenceServer(t, response{http.StatusOK, idRecords()})
+	c := newTestClient(t, ts)
+	fields := make([]string, 1, 2)
+	fields[0] = "title"
+	if _, err := recordIDs(t, c.AllRecordsByID(t.Context(), AllRecordsByIDRequest{App: 1, Fields: fields})); err != nil {
+		t.Fatalf("AllRecordsByID returned error: %v", err)
+	}
+	if got := fields[:cap(fields)]; got[1] != "" {
+		t.Errorf("fields of the request should not be modified but got %q", got)
+	}
+}
+
+func TestClientAllRecordsByIDError(t *testing.T) {
+	setValue(t, &allRecordsByIDLimit, 2)
+	testCases := []struct {
+		name      string
+		responses []response
+		wantIDs   []string
+		check     func(error) bool
+	}{
+		{
+			name: "error response",
+			responses: []response{
+				{http.StatusOK, idRecords("1", "2")},
+				{http.StatusInternalServerError, `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`},
+			},
+			wantIDs: []string{"1", "2"},
+			check:   func(err error) bool { return IsErrorCode(err, "TEST_ERROR") },
+		},
+		{
+			name:      "record without $id",
+			responses: []response{{http.StatusOK, `{"records": [{"title": {"type": "SINGLE_LINE_TEXT", "value": "x"}}]}`}},
+			check:     func(err error) bool { return err != nil && err.Error() == "kintone: record without $id" },
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, _ := newSequenceServer(t, tc.responses...)
+			c := newTestClient(t, ts)
+			ids, err := recordIDs(t, c.AllRecordsByID(t.Context(), AllRecordsByIDRequest{App: 1}))
+			if !tc.check(err) {
+				t.Errorf("AllRecordsByID returned unexpected error: %v", err)
+			}
+			if !reflect.DeepEqual(ids, tc.wantIDs) {
+				t.Errorf("record IDs: got %v, want %v", ids, tc.wantIDs)
+			}
+		})
+	}
+}
+
+func TestClientAllRecordsByIDBreak(t *testing.T) {
+	setValue(t, &allRecordsByIDLimit, 2)
+	ts, requests := newSequenceServer(t, response{http.StatusOK, idRecords("1", "2")})
+	c := newTestClient(t, ts)
+	for record, err := range c.AllRecordsByID(t.Context(), AllRecordsByIDRequest{App: 1}) {
+		if err != nil {
+			t.Fatalf("AllRecordsByID returned error: %v", err)
+		}
+		if record["$id"].Value == "2" {
+			break
+		}
+	}
+	if reqs := requests(); len(reqs) != 1 {
+		t.Errorf("number of requests: got %d, want %d", len(reqs), 1)
+	}
+}
+
+func TestClientAllRecordsByIDWarning(t *testing.T) {
+	setValue(t, &allRecordsByIDLimit, 2)
+	var calls int
+	ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.Copy(io.Discard, r.Body)
+		calls++
+		if calls == 1 {
+			w.Header().Set("X-Cybozu-Warning", "Filter aborted because of too many search results")
+			_, _ = io.WriteString(w, idRecords("1", "2"))
+			return
+		}
+		_, _ = io.WriteString(w, idRecords("3"))
+	}))
+	c := newTestClient(t, ts)
+	var ids []string
+	var errs []error
+	for record, err := range c.AllRecordsByID(t.Context(), AllRecordsByIDRequest{App: 1, Condition: `title like "a"`}) {
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		ids = append(ids, record["$id"].Value.(string))
+	}
+	if want := []string{"1", "2", "3"}; !reflect.DeepEqual(ids, want) {
+		t.Errorf("record IDs: got %v, want %v", ids, want)
+	}
+	var warning *WarningError
+	if len(errs) != 1 || !errors.As(errs[0], &warning) || warning.Message != "Filter aborted because of too many search results" {
+		t.Errorf("AllRecordsByID should yield one *WarningError after the records but got: %v", errs)
 	}
 }

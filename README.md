@@ -115,6 +115,21 @@ When kintone returns a warning in the `X-Cybozu-Warning` response header, `AllRe
 
 `CreateCursor`, `GetRecordsByCursor` and `DeleteCursor` are also available to use the cursor directly.
 
+`AllRecordsByID` iterates over all the records in ascending order of the record ID without a cursor,
+using the condition on `$id` to get the next records.
+
+```go
+for record, err := range client.AllRecordsByID(ctx, kintone.AllRecordsByIDRequest{
+	App:       app,
+	Condition: `status in ("Open")`,
+}) {
+	if err != nil {
+		return err
+	}
+	fmt.Println(record["$id"].Value)
+}
+```
+
 ### Apps
 
 App settings are changed in the preview environment, and deployed to the production environment by `DeployApps`.

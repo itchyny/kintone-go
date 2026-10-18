@@ -52,7 +52,7 @@ type ExecutableUser struct {
 
 // GetProcessManagement gets the process management settings of an app.
 func (c *Client) GetProcessManagement(ctx context.Context, req GetAppSettingsRequest) (*ProcessManagement, error) {
-	return c.getAppSettings[ProcessManagement](ctx, "status.json", req.Preview, req)
+	return c.getAppSettings[ProcessManagement](ctx, "app/status.json", req.Preview, req)
 }
 
 // UpdateProcessManagement updates the process management settings of an app
@@ -64,5 +64,5 @@ func (c *Client) UpdateProcessManagement(ctx context.Context, app int64, setting
 		ProcessManagement
 		Revision int64 `json:"revision,omitempty"`
 	}{app, settings, revision}
-	return c.updateAppSettings(ctx, http.MethodPut, "status.json", params)
+	return c.updateAppSettings(ctx, http.MethodPut, "app/status.json", params)
 }

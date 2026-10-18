@@ -34,7 +34,7 @@ func (c *Client) GetCustomization(ctx context.Context, req GetAppSettingsRequest
 	params := struct {
 		App int64 `json:"app"`
 	}{req.App}
-	return c.getAppSettings[Customization](ctx, "customize.json", req.Preview, params)
+	return c.getAppSettings[Customization](ctx, "app/customize.json", req.Preview, params)
 }
 
 // UpdateCustomization updates the JavaScript and CSS customization of an app
@@ -46,5 +46,5 @@ func (c *Client) UpdateCustomization(ctx context.Context, app int64, customizati
 		Customization
 		Revision int64 `json:"revision,omitempty"`
 	}{app, customization, revision}
-	return c.updateAppSettings(ctx, http.MethodPut, "customize.json", params)
+	return c.updateAppSettings(ctx, http.MethodPut, "app/customize.json", params)
 }

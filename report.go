@@ -98,7 +98,7 @@ type Reports struct {
 
 // GetReports gets the graphs of an app.
 func (c *Client) GetReports(ctx context.Context, req GetAppSettingsRequest) (*Reports, error) {
-	return c.getAppSettings[Reports](ctx, "reports.json", req.Preview, req)
+	return c.getAppSettings[Reports](ctx, "app/reports.json", req.Preview, req)
 }
 
 // UpdatedReports is the response of [Client.UpdateReports], which has the

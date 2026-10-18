@@ -40,7 +40,7 @@ type Views struct {
 
 // GetViews gets the views of an app.
 func (c *Client) GetViews(ctx context.Context, req GetAppSettingsRequest) (*Views, error) {
-	return c.getAppSettings[Views](ctx, "views.json", req.Preview, req)
+	return c.getAppSettings[Views](ctx, "app/views.json", req.Preview, req)
 }
 
 // UpdatedViews is the response of [Client.UpdateViews], which has the view

@@ -20,7 +20,7 @@ type AppPlugins struct {
 
 // GetAppPlugins gets the plugins added to an app.
 func (c *Client) GetAppPlugins(ctx context.Context, req GetAppSettingsRequest) (*AppPlugins, error) {
-	return c.getAppSettings[AppPlugins](ctx, "plugins.json", req.Preview, req)
+	return c.getAppSettings[AppPlugins](ctx, "app/plugins.json", req.Preview, req)
 }
 
 // AddAppPlugins adds plugins to an app in the preview environment and returns
@@ -31,5 +31,5 @@ func (c *Client) AddAppPlugins(ctx context.Context, app int64, ids []string, rev
 		IDs      []string `json:"ids"`
 		Revision int64    `json:"revision,omitempty"`
 	}{app, ids, revision}
-	return c.updateAppSettings(ctx, http.MethodPost, "plugins.json", params)
+	return c.updateAppSettings(ctx, http.MethodPost, "app/plugins.json", params)
 }

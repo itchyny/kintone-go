@@ -144,7 +144,7 @@ type FormFields struct {
 
 // GetFormFields gets the fields of an app, keyed by the field code.
 func (c *Client) GetFormFields(ctx context.Context, req GetAppSettingsRequest) (*FormFields, error) {
-	return c.getAppSettings[FormFields](ctx, "form/fields.json", req.Preview, req)
+	return c.getAppSettings[FormFields](ctx, "app/form/fields.json", req.Preview, req)
 }
 
 // AddFormFields adds fields to an app in the preview environment and returns
@@ -166,7 +166,7 @@ func (c *Client) updateFormFields(ctx context.Context, method string, app int64,
 		Properties map[string]FieldProperty `json:"properties"`
 		Revision   int64                    `json:"revision,omitempty"`
 	}{app, properties, revision}
-	return c.updateAppSettings(ctx, method, "form/fields.json", params)
+	return c.updateAppSettings(ctx, method, "app/form/fields.json", params)
 }
 
 // DeleteFormFields deletes fields of an app in the preview environment and
@@ -177,7 +177,7 @@ func (c *Client) DeleteFormFields(ctx context.Context, app int64, fields []strin
 		Fields   []string `json:"fields"`
 		Revision int64    `json:"revision,omitempty"`
 	}{app, fields, revision}
-	return c.updateAppSettings(ctx, http.MethodDelete, "form/fields.json", params)
+	return c.updateAppSettings(ctx, http.MethodDelete, "app/form/fields.json", params)
 }
 
 // FormLayout is the layout of the form of an app.
@@ -229,7 +229,7 @@ func (c *Client) GetFormLayout(ctx context.Context, req GetAppSettingsRequest) (
 	params := struct {
 		App int64 `json:"app"`
 	}{req.App}
-	return c.getAppSettings[FormLayout](ctx, "form/layout.json", req.Preview, params)
+	return c.getAppSettings[FormLayout](ctx, "app/form/layout.json", req.Preview, params)
 }
 
 // UpdateFormLayout updates the layout of the form of an app in the preview
@@ -241,5 +241,5 @@ func (c *Client) UpdateFormLayout(ctx context.Context, app int64, layout []Layou
 		Layout   []LayoutRow `json:"layout"`
 		Revision int64       `json:"revision,omitempty"`
 	}{app, layout, revision}
-	return c.updateAppSettings(ctx, http.MethodPut, "form/layout.json", params)
+	return c.updateAppSettings(ctx, http.MethodPut, "app/form/layout.json", params)
 }

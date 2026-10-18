@@ -138,8 +138,7 @@ type GetAppSettingsRequest struct {
 	Preview bool   `json:"-"`
 }
 
-func (c *Client) getAppSettings[T any](ctx context.Context, name string, preview bool, params any) (*T, error) {
-	path := "app/" + name
+func (c *Client) getAppSettings[T any](ctx context.Context, path string, preview bool, params any) (*T, error) {
 	if preview {
 		path = "preview/" + path
 	}
@@ -150,10 +149,10 @@ func (c *Client) getAppSettings[T any](ctx context.Context, name string, preview
 	return &result, nil
 }
 
-func (c *Client) updateAppSettings(ctx context.Context, method, name string, params any) (int64, error) {
+func (c *Client) updateAppSettings(ctx context.Context, method, path string, params any) (int64, error) {
 	result, err := c.do[struct {
 		Revision int64 `json:"revision,string"`
-	}](ctx, method, "preview/app/"+name, params)
+	}](ctx, method, "preview/"+path, params)
 	if err != nil {
 		return 0, err
 	}

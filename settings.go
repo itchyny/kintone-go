@@ -47,7 +47,7 @@ type NumberPrecision struct {
 
 // GetGeneralSettings gets the general settings of an app.
 func (c *Client) GetGeneralSettings(ctx context.Context, req GetAppSettingsRequest) (*GeneralSettings, error) {
-	return c.getAppSettings[GeneralSettings](ctx, "settings.json", req.Preview, req)
+	return c.getAppSettings[GeneralSettings](ctx, "app/settings.json", req.Preview, req)
 }
 
 // UpdateGeneralSettings updates the general settings of an app in the preview
@@ -59,7 +59,7 @@ func (c *Client) UpdateGeneralSettings(ctx context.Context, app int64, settings 
 		GeneralSettings
 		Revision int64 `json:"revision,omitempty"`
 	}{app, settings, revision}
-	return c.updateAppSettings(ctx, http.MethodPut, "settings.json", params)
+	return c.updateAppSettings(ctx, http.MethodPut, "app/settings.json", params)
 }
 
 // AdminNotes is the notes for the app administrators.
@@ -75,7 +75,7 @@ func (c *Client) GetAdminNotes(ctx context.Context, req GetAppSettingsRequest) (
 	params := struct {
 		App int64 `json:"app"`
 	}{req.App}
-	return c.getAppSettings[AdminNotes](ctx, "adminNotes.json", req.Preview, params)
+	return c.getAppSettings[AdminNotes](ctx, "app/adminNotes.json", req.Preview, params)
 }
 
 // UpdateAdminNotes updates the notes for the administrators of an app in the
@@ -88,5 +88,5 @@ func (c *Client) UpdateAdminNotes(ctx context.Context, app int64, notes AdminNot
 		AdminNotes
 		Revision int64 `json:"revision,omitempty"`
 	}{app, notes, revision}
-	return c.updateAppSettings(ctx, http.MethodPut, "adminNotes.json", params)
+	return c.updateAppSettings(ctx, http.MethodPut, "app/adminNotes.json", params)
 }

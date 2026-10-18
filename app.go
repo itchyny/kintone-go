@@ -159,3 +159,63 @@ func (c *Client) updateAppSettings(ctx context.Context, method, name string, par
 	}
 	return result.Revision, nil
 }
+
+// AppStatistics is the usage of an app.
+// Space is nil if the app does not belong to a space.
+type AppStatistics struct {
+	ID                int64     `json:"id,string"`
+	Name              string    `json:"name"`
+	Space             *AppSpace `json:"space"`
+	AppGroup          string    `json:"appGroup"`
+	Status            string    `json:"status"`
+	RecordUpdatedAt   time.Time `json:"recordUpdatedAt"`
+	RecordCount       int64     `json:"recordCount,string"`
+	FieldCount        int64     `json:"fieldCount,string"`
+	DailyRequestCount int64     `json:"dailyRequestCount,string"`
+	APITokenCount     int64     `json:"apiTokenCount,string"`
+	WebhookCount      int64     `json:"webhookCount,string"`
+	StorageUsage      int64     `json:"storageUsage,string"`
+	Customized        bool      `json:"customized"`
+	Creator           Entity    `json:"creator"`
+	CreatedAt         time.Time `json:"createdAt"`
+	Modifier          Entity    `json:"modifier"`
+	ModifiedAt        time.Time `json:"modifiedAt"`
+}
+
+// AppSpace is the space of an app.
+type AppSpace struct {
+	ID   int64  `json:"id,string"`
+	Name string `json:"name"`
+}
+
+// GetAppsStatisticsRequest is the request of [Client.GetAppsStatistics].
+type GetAppsStatisticsRequest struct {
+	Offset int64 `json:"offset,omitempty"`
+	Limit  int64 `json:"limit,omitempty"`
+}
+
+// GetAppsStatistics gets the usage of apps. The guest space of the client is
+// not used.
+func (c *Client) GetAppsStatistics(ctx context.Context, req GetAppsStatisticsRequest) ([]AppStatistics, error) {
+	result, err := c.withoutGuestSpace().get[struct {
+		Apps []AppStatistics `json:"apps"`
+	}](ctx, "apps/statistics.json", req)
+	if err != nil {
+		return nil, err
+	}
+	return result.Apps, nil
+}
+
+// MoveApp moves an app to the space. If space is zero, the app is moved out of
+// the space. The guest space of the client is not used.
+func (c *Client) MoveApp(ctx context.Context, app, space int64) error {
+	params := struct {
+		App   int64  `json:"app"`
+		Space *int64 `json:"space"`
+	}{App: app}
+	if space != 0 {
+		params.Space = &space
+	}
+	_, err := c.withoutGuestSpace().post[struct{}](ctx, "app/move.json", params)
+	return err
+}

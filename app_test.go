@@ -203,3 +203,144 @@ func TestClientGetDeployStatus(t *testing.T) {
 		t.Errorf("statuses: got %+v, want %+v", statuses, want)
 	}
 }
+
+func TestClientGetAppsStatistics(t *testing.T) {
+	testCases := []struct {
+		name     string
+		req      GetAppsStatisticsRequest
+		opts     []Option
+		wantBody string
+	}{
+		{
+			name:     "offset and limit",
+			req:      GetAppsStatisticsRequest{Offset: 100, Limit: 50},
+			wantBody: `{"offset": 100, "limit": 50}`,
+		},
+		{
+			name:     "guest space is not used",
+			opts:     []Option{WithGuestSpace(3)},
+			wantBody: `{}`,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, got := newTestServer(t, http.StatusOK, `{
+				"apps": [
+					{
+						"id": "1",
+						"name": "Deals",
+						"space": {"id": "2", "name": "Sales"},
+						"appGroup": "Public",
+						"status": "ACTIVATED",
+						"recordUpdatedAt": "2026-10-04T05:45:36.000Z",
+						"recordCount": "100",
+						"fieldCount": "10",
+						"dailyRequestCount": "1",
+						"apiTokenCount": "2",
+						"webhookCount": "3",
+						"storageUsage": "47000000",
+						"customized": true,
+						"creator": {"code": "alice", "name": "Alice"},
+						"createdAt": "2026-10-01T05:45:36.000Z",
+						"modifier": {"code": "bob", "name": "Bob"},
+						"modifiedAt": "2026-10-02T05:45:36.000Z"
+					},
+					{
+						"id": "4",
+						"name": "Notes",
+						"space": null,
+						"appGroup": "",
+						"status": "NOT_ACTIVATED",
+						"recordUpdatedAt": "2026-10-01T00:00:00.000Z",
+						"recordCount": "0",
+						"fieldCount": "0",
+						"dailyRequestCount": "0",
+						"apiTokenCount": "0",
+						"webhookCount": "0",
+						"storageUsage": "0",
+						"customized": false,
+						"creator": {"code": "alice", "name": "Alice"},
+						"createdAt": "2026-10-01T00:00:00.000Z",
+						"modifier": {"code": "alice", "name": "Alice"},
+						"modifiedAt": "2026-10-01T00:00:00.000Z"
+					}
+				]
+			}`)
+			c := newTestClient(t, ts, tc.opts...)
+			apps, err := c.GetAppsStatistics(t.Context(), tc.req)
+			if err != nil {
+				t.Fatalf("GetAppsStatistics returned error: %v", err)
+			}
+			assertRequest(t, got, http.MethodGet, "/k/v1/apps/statistics.json", tc.wantBody)
+			want := []AppStatistics{
+				{
+					ID:                1,
+					Name:              "Deals",
+					Space:             &AppSpace{ID: 2, Name: "Sales"},
+					AppGroup:          "Public",
+					Status:            "ACTIVATED",
+					RecordUpdatedAt:   time.Date(2026, 10, 4, 5, 45, 36, 0, time.UTC),
+					RecordCount:       100,
+					FieldCount:        10,
+					DailyRequestCount: 1,
+					APITokenCount:     2,
+					WebhookCount:      3,
+					StorageUsage:      47000000,
+					Customized:        true,
+					Creator:           Entity{Code: "alice", Name: "Alice"},
+					CreatedAt:         time.Date(2026, 10, 1, 5, 45, 36, 0, time.UTC),
+					Modifier:          Entity{Code: "bob", Name: "Bob"},
+					ModifiedAt:        time.Date(2026, 10, 2, 5, 45, 36, 0, time.UTC),
+				},
+				{
+					ID:              4,
+					Name:            "Notes",
+					Status:          "NOT_ACTIVATED",
+					RecordUpdatedAt: time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC),
+					Creator:         Entity{Code: "alice", Name: "Alice"},
+					CreatedAt:       time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC),
+					Modifier:        Entity{Code: "alice", Name: "Alice"},
+					ModifiedAt:      time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC),
+				},
+			}
+			if !reflect.DeepEqual(apps, want) {
+				t.Errorf("apps: got %+v, want %+v", apps, want)
+			}
+		})
+	}
+}
+
+func TestClientMoveApp(t *testing.T) {
+	testCases := []struct {
+		name     string
+		space    int64
+		opts     []Option
+		wantBody string
+	}{
+		{
+			name:     "to a space",
+			space:    2,
+			wantBody: `{"app": 1, "space": 2}`,
+		},
+		{
+			name:     "out of the space",
+			wantBody: `{"app": 1, "space": null}`,
+		},
+		{
+			name:     "guest space is not used",
+			space:    2,
+			opts:     []Option{WithGuestSpace(3)},
+			wantBody: `{"app": 1, "space": 2}`,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, got := newTestServer(t, http.StatusOK, `{}`)
+			c := newTestClient(t, ts, tc.opts...)
+			if err := c.MoveApp(t.Context(), 1, tc.space); err != nil {
+				t.Fatalf("MoveApp returned error: %v", err)
+			}
+			assertRequest(t, got, http.MethodPost, "/k/v1/app/move.json", tc.wantBody)
+		})
+	}
+}

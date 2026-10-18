@@ -131,6 +131,12 @@ func WithUserAgent(userAgent string) Option {
 	}
 }
 
+func (c *Client) withoutGuestSpace() *Client {
+	d := *c
+	d.guestSpaceID = 0
+	return &d
+}
+
 func (c *Client) endpoint(path string) *url.URL {
 	u := *c.baseURL
 	if c.guestSpaceID != 0 {

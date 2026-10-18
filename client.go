@@ -154,12 +154,16 @@ func (c *Client) withGuestSpace(id int64) *Client {
 
 func (c *Client) endpoint(path string) *url.URL {
 	u := *c.baseURL
-	if c.guestSpaceID != 0 {
-		u.Path += "/k/guest/" + strconv.FormatInt(c.guestSpaceID, 10) + "/v1/" + path
-	} else {
-		u.Path += "/k/v1/" + path
-	}
+	u.Path += c.apiPath(path)
 	return &u
+}
+
+// apiPath returns the path of the API, which is relative to the base URL.
+func (c *Client) apiPath(path string) string {
+	if c.guestSpaceID != 0 {
+		return "/k/guest/" + strconv.FormatInt(c.guestSpaceID, 10) + "/v1/" + path
+	}
+	return "/k/v1/" + path
 }
 
 func (c *Client) get[T any](ctx context.Context, path string, params any) (T, error) {

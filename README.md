@@ -156,6 +156,43 @@ for {
 }
 ```
 
+### Spaces
+
+`AddSpaceFromTemplate` adds a space from a space template, and `AddSpace` adds a public single thread space by the name.
+
+```go
+space, err := client.GetSpace(ctx, spaceID)
+if err != nil {
+	return err
+}
+
+thread, err := client.AddThread(ctx, space.ID, "Weekly report")
+if err != nil {
+	return err
+}
+_, err = client.AddThreadComment(ctx, space.ID, thread, kintone.ThreadComment{
+	Text:     "Please check the report.",
+	Mentions: []kintone.Mention{{Code: "alice", Type: kintone.EntityTypeUser}},
+})
+if err != nil {
+	return err
+}
+
+members, err := client.GetSpaceMembers(ctx, space.ID)
+if err != nil {
+	return err
+}
+members = slices.DeleteFunc(members, func(m kintone.SpaceMember) bool {
+	return m.IsImplicit
+})
+members = append(members, kintone.SpaceMember{
+	Entity: kintone.FieldEntity{Type: kintone.EntityTypeUser, Code: "bob"},
+})
+err = client.UpdateSpaceMembers(ctx, space.ID, members)
+```
+
+To access the apps and the spaces in a guest space, create the client with `kintone.WithGuestSpace`.
+
 ### Files
 
 `UploadFile` uploads a file and returns the file key, which can be set to an attachment field.

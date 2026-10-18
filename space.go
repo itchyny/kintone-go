@@ -230,3 +230,28 @@ func (c *Client) GetSpacesStatistics(ctx context.Context, req GetSpacesStatistic
 	}
 	return result.Spaces, nil
 }
+
+// GetSpaceMembers gets the members of a space.
+func (c *Client) GetSpaceMembers(ctx context.Context, id int64) ([]SpaceMember, error) {
+	params := struct {
+		ID int64 `json:"id"`
+	}{id}
+	result, err := c.get[struct {
+		Members []SpaceMember `json:"members"`
+	}](ctx, "space/members.json", params)
+	if err != nil {
+		return nil, err
+	}
+	return result.Members, nil
+}
+
+// UpdateSpaceMembers updates the members of a space. The members with
+// IsImplicit are sent as explicit members.
+func (c *Client) UpdateSpaceMembers(ctx context.Context, id int64, members []SpaceMember) error {
+	params := struct {
+		ID      int64              `json:"id"`
+		Members []spaceMemberParam `json:"members"`
+	}{id, spaceMemberParams(members)}
+	_, err := c.put[struct{}](ctx, "space/members.json", params)
+	return err
+}

@@ -402,3 +402,46 @@ func TestClientAddSpaceFromTemplateID(t *testing.T) {
 		}
 	}
 }
+
+func TestClientGetSpaceMembers(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{
+		"members": [
+			{"entity": {"type": "USER", "code": "alice"}, "isAdmin": true, "isImplicit": false},
+			{"entity": {"type": "USER", "code": "bob"}, "isAdmin": false, "isImplicit": true},
+			{"entity": {"type": "ORGANIZATION", "code": "sales"}, "isAdmin": false, "includeSubs": true}
+		]
+	}`)
+	c := newTestClient(t, ts)
+	members, err := c.GetSpaceMembers(t.Context(), 2)
+	if err != nil {
+		t.Fatalf("GetSpaceMembers returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodGet, "/k/v1/space/members.json", `{"id": 2}`)
+	want := []SpaceMember{
+		{Entity: FieldEntity{Type: EntityTypeUser, Code: "alice"}, IsAdmin: true},
+		{Entity: FieldEntity{Type: EntityTypeUser, Code: "bob"}, IsImplicit: true},
+		{Entity: FieldEntity{Type: EntityTypeOrganization, Code: "sales"}, IncludeSubs: true},
+	}
+	if !reflect.DeepEqual(members, want) {
+		t.Errorf("members: got %+v, want %+v", members, want)
+	}
+}
+
+func TestClientUpdateSpaceMembers(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{}`)
+	c := newTestClient(t, ts)
+	err := c.UpdateSpaceMembers(t.Context(), 2, []SpaceMember{
+		{Entity: FieldEntity{Type: EntityTypeUser, Code: "alice"}, IsAdmin: true},
+		{Entity: FieldEntity{Type: EntityTypeGroup, Code: "everyone"}, IsImplicit: true},
+	})
+	if err != nil {
+		t.Fatalf("UpdateSpaceMembers returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPut, "/k/v1/space/members.json", `{
+		"id": 2,
+		"members": [
+			{"entity": {"type": "USER", "code": "alice"}, "isAdmin": true},
+			{"entity": {"type": "GROUP", "code": "everyone"}}
+		]
+	}`)
+}

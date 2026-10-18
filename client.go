@@ -180,12 +180,18 @@ func (c *Client) delete[T any](ctx context.Context, path string, params any) (T,
 
 // do a JSON request and decodes the JSON response as T.
 func (c *Client) do[T any](ctx context.Context, method, path string, params any) (T, error) {
+	result, _, err := c.doHeader[T](ctx, method, path, params)
+	return result, err
+}
+
+// doHeader is the same as do, but also returns the response header.
+func (c *Client) doHeader[T any](ctx context.Context, method, path string, params any) (T, http.Header, error) {
 	var result T
 	var body io.Reader
 	if params != nil {
 		b, err := json.Marshal(params)
 		if err != nil {
-			return result, fmt.Errorf("kintone: %w", err)
+			return result, nil, fmt.Errorf("kintone: %w", err)
 		}
 		body = bytes.NewReader(b)
 	}
@@ -195,7 +201,7 @@ func (c *Client) do[T any](ctx context.Context, method, path string, params any)
 	}
 	req, err := http.NewRequestWithContext(ctx, httpMethod, c.endpoint(path).String(), body)
 	if err != nil {
-		return result, fmt.Errorf("kintone: %w", err)
+		return result, nil, fmt.Errorf("kintone: %w", err)
 	}
 	if params != nil {
 		req.Header.Set("Content-Type", "application/json")
@@ -205,17 +211,17 @@ func (c *Client) do[T any](ctx context.Context, method, path string, params any)
 	}
 	res, err := c.send(req)
 	if err != nil {
-		return result, err
+		return result, nil, err
 	}
 	defer res.Body.Close()
 	if _, ok := any(result).(struct{}); ok {
 		_, _ = io.Copy(io.Discard, res.Body)
-		return result, nil
+		return result, res.Header, nil
 	}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return result, fmt.Errorf("kintone: decode response: %w", err)
+		return result, nil, fmt.Errorf("kintone: decode response: %w", err)
 	}
-	return result, nil
+	return result, res.Header, nil
 }
 
 // send the request with authentication headers. The caller must close

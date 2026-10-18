@@ -2,7 +2,9 @@ package kintone
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"testing"
 )
@@ -389,5 +391,36 @@ func TestClientDeleteRecordsError(t *testing.T) {
 	err := c.DeleteRecords(t.Context(), 1, []int64{2}, nil)
 	if !IsErrorCode(err, "TEST_ERROR") {
 		t.Errorf("DeleteRecords should return TEST_ERROR error but got: %v", err)
+	}
+}
+
+func TestClientGetRecordsWarning(t *testing.T) {
+	testCases := []struct {
+		name    string
+		warning string
+	}{
+		{"warning", "Filter aborted because of too many search results"},
+		{"no warning", ""},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if tc.warning != "" {
+					w.Header().Set("X-Cybozu-Warning", tc.warning)
+				}
+				_, _ = io.WriteString(w, `{"records": [{"$id": {"type": "__ID__", "value": "1"}}], "totalCount": null}`)
+			}))
+			c := newTestClient(t, ts)
+			res, err := c.GetRecords(t.Context(), GetRecordsRequest{App: 1, Query: `title like "a"`})
+			if err != nil {
+				t.Fatalf("GetRecords returned error: %v", err)
+			}
+			if res.Warning != tc.warning {
+				t.Errorf("warning: got %q, want %q", res.Warning, tc.warning)
+			}
+			if len(res.Records) != 1 {
+				t.Errorf("records should be returned even with the warning but got %d", len(res.Records))
+			}
+		})
 	}
 }

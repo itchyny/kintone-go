@@ -265,3 +265,91 @@ func TestClientAllRecordsContextCanceled(t *testing.T) {
 	}
 	assertRequest(t, &reqs[2], http.MethodDelete, "/k/v1/records/cursor.json", `{"id": "cursor1"}`)
 }
+
+func newCursorWarningServer(t *testing.T, warning string) *httptest.Server {
+	t.Helper()
+	var calls int
+	ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.Copy(io.Discard, r.Body)
+		calls++
+		switch calls {
+		case 1:
+			if warning != "" {
+				w.Header().Set("X-Cybozu-Warning", warning)
+			}
+			_, _ = io.WriteString(w, `{"id": "cursor1", "totalCount": "2"}`)
+		case 2:
+			_, _ = io.WriteString(w, `{"records": [
+				{"$id": {"type": "__ID__", "value": "1"}},
+				{"$id": {"type": "__ID__", "value": "2"}}
+			], "next": false}`)
+		default:
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	return ts
+}
+
+func TestClientCreateCursorWarning(t *testing.T) {
+	ts := newCursorWarningServer(t, "Filter aborted because of too many search results.")
+	c := newTestClient(t, ts)
+	cursor, err := c.CreateCursor(t.Context(), CreateCursorRequest{App: 1, Query: `title like "a"`})
+	if err != nil {
+		t.Fatalf("CreateCursor returned error: %v", err)
+	}
+	if want := "Filter aborted because of too many search results."; cursor.Warning != want {
+		t.Errorf("warning: got %q, want %q", cursor.Warning, want)
+	}
+}
+
+func TestClientAllRecordsWarning(t *testing.T) {
+	ts := newCursorWarningServer(t, "Filter aborted because of too many search results.")
+	c := newTestClient(t, ts)
+	var ids []string
+	var errs []error
+	for record, err := range c.AllRecords(t.Context(), CreateCursorRequest{App: 1, Query: `title like "a"`}) {
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		ids = append(ids, record["$id"].Value.(string))
+	}
+	if want := []string{"1", "2"}; !reflect.DeepEqual(ids, want) {
+		t.Errorf("record IDs: got %v, want %v", ids, want)
+	}
+	if len(errs) != 1 {
+		t.Fatalf("number of errors: got %d, want %d", len(errs), 1)
+	}
+	var warning *WarningError
+	if !errors.As(errs[0], &warning) || warning.Message != "Filter aborted because of too many search results." {
+		t.Errorf("AllRecords should yield *WarningError but got: %v", errs[0])
+	}
+	if want := "kintone: Filter aborted because of too many search results."; errs[0].Error() != want {
+		t.Errorf("error message: got %q, want %q", errs[0].Error(), want)
+	}
+}
+
+func TestClientAllRecordsNoWarning(t *testing.T) {
+	ts := newCursorWarningServer(t, "")
+	c := newTestClient(t, ts)
+	ids, err := recordIDs(t, c.AllRecords(t.Context(), CreateCursorRequest{App: 1}))
+	if err != nil {
+		t.Fatalf("AllRecords returned error: %v", err)
+	}
+	if want := []string{"1", "2"}; !reflect.DeepEqual(ids, want) {
+		t.Errorf("record IDs: got %v, want %v", ids, want)
+	}
+}
+
+func TestClientAllRecordsWarningBreak(t *testing.T) {
+	ts := newCursorWarningServer(t, "Filter aborted because of too many search results.")
+	c := newTestClient(t, ts)
+	for record, err := range c.AllRecords(t.Context(), CreateCursorRequest{App: 1}) {
+		if err != nil {
+			t.Fatalf("AllRecords should not yield the warning after break but got: %v", err)
+		}
+		if record["$id"].Value == "2" {
+			break
+		}
+	}
+}

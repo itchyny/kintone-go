@@ -3,6 +3,7 @@ package kintone
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 )
 
@@ -33,18 +34,21 @@ type GetRecordsRequest struct {
 }
 
 // GetRecordsResponse is the response of [Client.GetRecords].
-// TotalCount is set only when TotalCount of the request is true.
+// TotalCount is set only when TotalCount of the request is true. Warning is
+// the value of the X-Cybozu-Warning response header.
 type GetRecordsResponse struct {
 	Records    []Record `json:"records"`
 	TotalCount int64    `json:"totalCount,string"`
+	Warning    string   `json:"-"`
 }
 
 // GetRecords gets records matching the query.
 func (c *Client) GetRecords(ctx context.Context, req GetRecordsRequest) (*GetRecordsResponse, error) {
-	result, err := c.get[GetRecordsResponse](ctx, "records.json", req)
+	result, header, err := c.doHeader[GetRecordsResponse](ctx, http.MethodGet, "records.json", req)
 	if err != nil {
 		return nil, err
 	}
+	result.Warning = header.Get(warningHeader)
 	return &result, nil
 }
 

@@ -3,6 +3,7 @@ package kintone
 import (
 	"context"
 	"iter"
+	"net/http"
 	"time"
 )
 
@@ -14,18 +15,21 @@ type CreateCursorRequest struct {
 	Size   int64    `json:"size,omitempty"`
 }
 
-// Cursor is a cursor to get records.
+// Cursor is a cursor to get records. Warning is the value of the
+// X-Cybozu-Warning response header.
 type Cursor struct {
 	ID         string `json:"id"`
 	TotalCount int64  `json:"totalCount,string"`
+	Warning    string `json:"-"`
 }
 
 // CreateCursor creates a cursor.
 func (c *Client) CreateCursor(ctx context.Context, req CreateCursorRequest) (*Cursor, error) {
-	result, err := c.post[Cursor](ctx, "records/cursor.json", req)
+	result, header, err := c.doHeader[Cursor](ctx, http.MethodPost, "records/cursor.json", req)
 	if err != nil {
 		return nil, err
 	}
+	result.Warning = header.Get(warningHeader)
 	return &result, nil
 }
 
@@ -56,7 +60,8 @@ func (c *Client) DeleteCursor(ctx context.Context, id string) error {
 
 // AllRecords iterates over the records using a cursor. If Size of the request
 // is zero, 500 is used. The cursor is deleted when the iteration stops before
-// getting all the records.
+// getting all the records. If the cursor has a warning, a [*WarningError] is
+// yielded after all the records.
 //
 //	for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{App: app}) {
 //		if err != nil {
@@ -96,5 +101,19 @@ func (c *Client) AllRecords(ctx context.Context, req CreateCursorRequest) iter.S
 				}
 			}
 		}
+		if cursor.Warning != "" {
+			yield(nil, &WarningError{Message: cursor.Warning})
+		}
 	}
+}
+
+const warningHeader = "X-Cybozu-Warning"
+
+// WarningError is a warning in the X-Cybozu-Warning response header.
+type WarningError struct {
+	Message string
+}
+
+func (e *WarningError) Error() string {
+	return "kintone: " + e.Message
 }

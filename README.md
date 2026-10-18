@@ -110,6 +110,9 @@ for record, err := range client.AllRecords(ctx, kintone.CreateCursorRequest{
 }
 ```
 
+When kintone returns a warning in the `X-Cybozu-Warning` response header, `AllRecords` yields a `*kintone.WarningError` after all the records.
+`GetRecords` and `CreateCursor` return the warning in `Warning` of the response.
+
 `CreateCursor`, `GetRecordsByCursor` and `DeleteCursor` are also available to use the cursor directly.
 
 ### Apps

@@ -117,8 +117,12 @@ func basicCredential(username, password string) string {
 
 // WithHTTPClient sets the HTTP client used for requests. The client does not
 // follow redirects, so that the credentials are not sent to other hosts.
+// If httpClient is nil, [http.DefaultClient] is used.
 func WithHTTPClient(httpClient *http.Client) Option {
 	return func(c *Client) {
+		if httpClient == nil {
+			httpClient = http.DefaultClient
+		}
 		c.httpClient = httpClient
 	}
 }

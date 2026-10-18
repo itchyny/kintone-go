@@ -568,3 +568,16 @@ func TestClientHTTPClientNotModified(t *testing.T) {
 		t.Error("the default HTTP client should not be modified")
 	}
 }
+
+func TestClientNilHTTPClient(t *testing.T) {
+	// http.DefaultClient reaches only a server listening on loopback
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{}`)
+	}))
+	t.Cleanup(ts.Close)
+	c := newClient(t, ts.URL, WithHTTPClient(nil))
+	if _, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil); err != nil {
+		t.Errorf("do returned error: %v", err)
+	}
+}

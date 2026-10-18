@@ -59,6 +59,11 @@ const (
 	FieldTypeCategory           FieldType = "CATEGORY"
 	FieldTypeStatus             FieldType = "STATUS"
 	FieldTypeStatusAssignee     FieldType = "STATUS_ASSIGNEE"
+	FieldTypeReferenceTable     FieldType = "REFERENCE_TABLE"
+	FieldTypeGroup              FieldType = "GROUP"
+	FieldTypeLabel              FieldType = "LABEL"
+	FieldTypeSpacer             FieldType = "SPACER"
+	FieldTypeHR                 FieldType = "HR"
 )
 
 // Entity is a user, department or group.
@@ -66,6 +71,16 @@ type Entity struct {
 	Code string `json:"code"`
 	Name string `json:"name,omitempty"`
 }
+
+// EntityType is the type of an entity.
+type EntityType string
+
+// Entity types.
+const (
+	EntityTypeUser         EntityType = "USER"
+	EntityTypeGroup        EntityType = "GROUP"
+	EntityTypeOrganization EntityType = "ORGANIZATION"
+)
 
 // FileInfo is a file of an attachment field.
 // Only FileKey is required when writing records.

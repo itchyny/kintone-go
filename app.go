@@ -129,3 +129,33 @@ func (c *Client) GetDeployStatus(ctx context.Context, apps []int64) ([]AppDeploy
 	}
 	return result.Apps, nil
 }
+
+// GetAppSettingsRequest is the request to get settings of an app.
+// If Preview is true, the settings in the preview environment are returned.
+type GetAppSettingsRequest struct {
+	App     int64  `json:"app"`
+	Lang    string `json:"lang,omitempty"`
+	Preview bool   `json:"-"`
+}
+
+func (c *Client) getAppSettings[T any](ctx context.Context, name string, preview bool, params any) (*T, error) {
+	path := "app/" + name
+	if preview {
+		path = "preview/" + path
+	}
+	result, err := c.get[T](ctx, path, params)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *Client) updateAppSettings(ctx context.Context, method, name string, params any) (int64, error) {
+	result, err := c.do[struct {
+		Revision int64 `json:"revision,string"`
+	}](ctx, method, "preview/app/"+name, params)
+	if err != nil {
+		return 0, err
+	}
+	return result.Revision, nil
+}

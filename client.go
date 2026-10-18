@@ -143,8 +143,12 @@ func WithUserAgent(userAgent string) Option {
 }
 
 func (c *Client) withoutGuestSpace() *Client {
+	return c.withGuestSpace(0)
+}
+
+func (c *Client) withGuestSpace(id int64) *Client {
 	d := *c
-	d.guestSpaceID = 0
+	d.guestSpaceID = id
 	return &d
 }
 

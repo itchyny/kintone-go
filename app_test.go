@@ -157,3 +157,49 @@ func TestClientAddApp(t *testing.T) {
 		})
 	}
 }
+
+func TestClientDeployApps(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{}`)
+	c := newTestClient(t, ts)
+	if err := c.DeployApps(t.Context(), []AppDeployment{{App: 1, Revision: 4}, {App: 2}}); err != nil {
+		t.Fatalf("DeployApps returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPost, "/k/v1/preview/app/deploy.json",
+		`{"apps": [{"app": 1, "revision": 4}, {"app": 2}]}`)
+}
+
+func TestClientRevertApps(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{}`)
+	c := newTestClient(t, ts, WithGuestSpace(3))
+	if err := c.RevertApps(t.Context(), []AppDeployment{{App: 1}}); err != nil {
+		t.Fatalf("RevertApps returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPost, "/k/guest/3/v1/preview/app/deploy.json",
+		`{"apps": [{"app": 1}], "revert": true}`)
+}
+
+func TestClientGetDeployStatus(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{
+		"apps": [
+			{"app": "1", "status": "PROCESSING"},
+			{"app": "2", "status": "SUCCESS"},
+			{"app": "3", "status": "FAIL"},
+			{"app": "4", "status": "CANCEL"}
+		]
+	}`)
+	c := newTestClient(t, ts)
+	statuses, err := c.GetDeployStatus(t.Context(), []int64{1, 2, 3, 4})
+	if err != nil {
+		t.Fatalf("GetDeployStatus returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodGet, "/k/v1/preview/app/deploy.json", `{"apps": [1, 2, 3, 4]}`)
+	want := []AppDeployStatus{
+		{App: 1, Status: DeployStatusProcessing},
+		{App: 2, Status: DeployStatusSuccess},
+		{App: 3, Status: DeployStatusFail},
+		{App: 4, Status: DeployStatusCancel},
+	}
+	if !reflect.DeepEqual(statuses, want) {
+		t.Errorf("statuses: got %+v, want %+v", statuses, want)
+	}
+}

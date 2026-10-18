@@ -70,3 +70,62 @@ type AppRevision struct {
 func (c *Client) AddApp(ctx context.Context, req AddAppRequest) (AppRevision, error) {
 	return c.post[AppRevision](ctx, "preview/app.json", req)
 }
+
+// AppDeployment is an app to deploy or revert.
+// The revision is not checked if Revision is zero.
+type AppDeployment struct {
+	App      int64 `json:"app"`
+	Revision int64 `json:"revision,omitempty"`
+}
+
+// DeployApps deploys the settings of the apps in the preview environment to
+// the production environment. Use [Client.GetDeployStatus] to check whether
+// the deployment is finished.
+func (c *Client) DeployApps(ctx context.Context, apps []AppDeployment) error {
+	return c.deployApps(ctx, apps, false)
+}
+
+// RevertApps discards the settings of the apps in the preview environment.
+func (c *Client) RevertApps(ctx context.Context, apps []AppDeployment) error {
+	return c.deployApps(ctx, apps, true)
+}
+
+func (c *Client) deployApps(ctx context.Context, apps []AppDeployment, revert bool) error {
+	params := struct {
+		Apps   []AppDeployment `json:"apps"`
+		Revert bool            `json:"revert,omitempty"`
+	}{apps, revert}
+	_, err := c.post[struct{}](ctx, "preview/app/deploy.json", params)
+	return err
+}
+
+// AppDeployStatus is the deploy status of an app.
+type AppDeployStatus struct {
+	App    int64        `json:"app,string"`
+	Status DeployStatus `json:"status"`
+}
+
+// DeployStatus is the status of a deployment.
+type DeployStatus string
+
+// Deploy statuses.
+const (
+	DeployStatusProcessing DeployStatus = "PROCESSING"
+	DeployStatusSuccess    DeployStatus = "SUCCESS"
+	DeployStatusFail       DeployStatus = "FAIL"
+	DeployStatusCancel     DeployStatus = "CANCEL"
+)
+
+// GetDeployStatus gets the deploy statuses of the apps.
+func (c *Client) GetDeployStatus(ctx context.Context, apps []int64) ([]AppDeployStatus, error) {
+	params := struct {
+		Apps []int64 `json:"apps"`
+	}{apps}
+	result, err := c.get[struct {
+		Apps []AppDeployStatus `json:"apps"`
+	}](ctx, "preview/app/deploy.json", params)
+	if err != nil {
+		return nil, err
+	}
+	return result.Apps, nil
+}

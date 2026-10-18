@@ -241,9 +241,10 @@ func (c *Client) send(req *http.Request) (*http.Response, error) {
 	return res, nil
 }
 
-// Error is an error response from kintone.
+// Error is an error response from kintone. Header is the response header.
 type Error struct {
 	StatusCode int                    `json:"-"`
+	Header     http.Header            `json:"-"`
 	Code       string                 `json:"code"`
 	ID         string                 `json:"id"`
 	Message    string                 `json:"message"`
@@ -278,9 +279,9 @@ func (e *Error) Error() string {
 
 func parseError(res *http.Response) error {
 	b, err := io.ReadAll(io.LimitReader(res.Body, 1<<20))
-	e := &Error{StatusCode: res.StatusCode}
+	e := &Error{StatusCode: res.StatusCode, Header: res.Header}
 	if err == nil && json.Unmarshal(b, e) != nil {
-		*e = Error{StatusCode: res.StatusCode, Message: truncate(strings.TrimSpace(string(b)), 200)}
+		*e = Error{StatusCode: res.StatusCode, Header: res.Header, Message: truncate(strings.TrimSpace(string(b)), 200)}
 	}
 	return e
 }

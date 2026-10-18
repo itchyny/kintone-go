@@ -285,7 +285,7 @@ for id := range apis.APIs {
 ### Errors
 
 Error responses from kintone are returned as `*kintone.Error`,
-which has the HTTP status code, the error code, the error ID and the message.
+which has the HTTP status code, the error code, the error ID, the message and the response header.
 
 ```go
 if kintone.IsErrorCode(err, "GAIA_RE01") {

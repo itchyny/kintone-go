@@ -447,11 +447,45 @@ func TestClientDoError(t *testing.T) {
 			if !errors.As(err, &e) {
 				t.Fatalf("do should return *Error but got: %v", err)
 			}
-			if !reflect.DeepEqual(e, tc.want) {
-				t.Errorf("error: got %+v, want %+v", e, tc.want)
+			got := *e
+			got.Header = nil
+			if !reflect.DeepEqual(&got, tc.want) {
+				t.Errorf("error: got %+v, want %+v", &got, tc.want)
 			}
 			if got := err.Error(); got != tc.wantMsg {
 				t.Errorf("error message: got %q, want %q", got, tc.wantMsg)
+			}
+		})
+	}
+}
+
+func TestClientDoErrorHeader(t *testing.T) {
+	testCases := []struct {
+		name string
+		body string
+	}{
+		{"JSON body", `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`},
+		{"non-JSON body", "Service Unavailable"},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("X-ConcurrencyLimit-Limit", "100")
+				w.Header().Set("X-ConcurrencyLimit-Running", "100")
+				w.WriteHeader(http.StatusServiceUnavailable)
+				_, _ = io.WriteString(w, tc.body)
+			}))
+			c := newTestClient(t, ts)
+			_, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil)
+			var e *Error
+			if !errors.As(err, &e) {
+				t.Fatalf("do should return *Error but got: %v", err)
+			}
+			if got := e.Header.Get("X-ConcurrencyLimit-Limit"); got != "100" {
+				t.Errorf("X-ConcurrencyLimit-Limit: got %q, want %q", got, "100")
+			}
+			if got := e.Header.Get("X-ConcurrencyLimit-Running"); got != "100" {
+				t.Errorf("X-ConcurrencyLimit-Running: got %q, want %q", got, "100")
 			}
 		})
 	}

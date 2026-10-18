@@ -419,6 +419,13 @@ func TestClientDoError(t *testing.T) {
 			wantMsg: "kintone: <html>Bad Gateway</html> (status: 502)",
 		},
 		{
+			name:    "long non-JSON body",
+			status:  http.StatusBadGateway,
+			body:    strings.Repeat("あ", 250),
+			want:    &Error{StatusCode: http.StatusBadGateway, Message: strings.Repeat("あ", 200) + "..."},
+			wantMsg: "kintone: " + strings.Repeat("あ", 200) + "... (status: 502)",
+		},
+		{
 			name:    "empty body",
 			status:  http.StatusServiceUnavailable,
 			want:    &Error{StatusCode: http.StatusServiceUnavailable},

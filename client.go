@@ -268,9 +268,20 @@ func parseError(res *http.Response) error {
 	b, err := io.ReadAll(io.LimitReader(res.Body, 1<<20))
 	e := &Error{StatusCode: res.StatusCode}
 	if err == nil && json.Unmarshal(b, e) != nil {
-		*e = Error{StatusCode: res.StatusCode, Message: strings.TrimSpace(string(b))}
+		*e = Error{StatusCode: res.StatusCode, Message: truncate(strings.TrimSpace(string(b)), 200)}
 	}
 	return e
+}
+
+func truncate(s string, n int) string {
+	var i int
+	for j := range s {
+		if i == n {
+			return s[:j] + "..."
+		}
+		i++
+	}
+	return s
 }
 
 // IsErrorCode reports whether err is an *Error with the code.

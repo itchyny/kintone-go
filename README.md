@@ -150,6 +150,28 @@ for record, err := range client.AllRecordsByID(ctx, kintone.AllRecordsByIDReques
 
 </details>
 
+### Bulk request
+
+`NewBulkRequest` sends multiple record operations in one request.
+The results are available from the values returned by the methods after `Send`.
+If a request in the bulk request fails, `Send` returns a `*kintone.BulkError` with the index of the request.
+Other errors are returned as is, and `kintone.IsErrorCode` works for both.
+
+<details>
+<summary>Example</summary>
+
+```go
+bulk := client.NewBulkRequest()
+added := bulk.AddRecord(app, kintone.Record{"title": {Value: "Hello"}})
+bulk.UpdateStatus(app, kintone.StatusUpdate{ID: id, Action: "Submit"})
+if err := bulk.Send(ctx); err != nil {
+	return err
+}
+fmt.Println(added.Value().ID)
+```
+
+</details>
+
 ### Apps
 
 App settings are changed in the preview environment, and deployed to the production environment by `DeployApps`.

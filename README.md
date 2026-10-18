@@ -45,14 +45,53 @@ A record is a map from the field code to the field.
 When reading records, the field value is decoded into the Go type of the field type,
 such as `string`, `[]string`, `kintone.Entity`, `[]kintone.Entity`,
 `[]kintone.FileInfo` and `[]kintone.SubtableRow`.
+
+```go
+record, err := client.GetRecord(ctx, app, id)
+if err != nil {
+	return err
+}
+title := record["title"].Value.(string)
+
+res, err := client.GetRecords(ctx, kintone.GetRecordsRequest{
+	App:    app,
+	Fields: []string{"$id", "title"},
+	Query:  `status in ("Open") order by $id asc limit 100`,
+})
+if err != nil {
+	return err
+}
+for _, record := range res.Records {
+	fmt.Println(record["$id"].Value, record["title"].Value)
+}
+```
+
 When writing records, the field type can be omitted.
 
 ```go
-record := kintone.Record{
+added, err := client.AddRecord(ctx, app, kintone.Record{
 	"title": {Value: "Hello"},
 	"users": {Value: []kintone.Entity{{Code: "alice"}}},
+})
+if err != nil {
+	return err
 }
+
+revision, err := client.UpdateRecord(ctx, app, kintone.RecordUpdate{
+	ID:       added.ID,
+	Record:   kintone.Record{"title": {Value: "Hello, world"}},
+	Revision: added.Revision,
+})
+if err != nil {
+	return err
+}
+
+err = client.DeleteRecords(ctx, app, []int64{added.ID}, []int64{revision})
 ```
+
+`AddRecords`, `UpdateRecords` and `UpsertRecords` process multiple records in a request.
+`UpdateRecord`, `UpdateRecords` and `UpsertRecords` can also specify a record by
+the value of a field with `UpdateKey` instead of `ID`.
 
 ### Errors
 

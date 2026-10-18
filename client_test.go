@@ -466,3 +466,68 @@ func TestIsErrorCode(t *testing.T) {
 		})
 	}
 }
+
+func TestClientMethods(t *testing.T) {
+	params := map[string]any{"app": 1}
+	testCases := []struct {
+		name         string
+		call         func(*Client) (map[string]any, error)
+		wantMethod   string
+		wantOverride string
+	}{
+		{
+			name: "get",
+			call: func(c *Client) (map[string]any, error) {
+				return c.get[map[string]any](t.Context(), "app.json", params)
+			},
+			wantMethod:   http.MethodPost,
+			wantOverride: http.MethodGet,
+		},
+		{
+			name: "post",
+			call: func(c *Client) (map[string]any, error) {
+				return c.post[map[string]any](t.Context(), "app.json", params)
+			},
+			wantMethod: http.MethodPost,
+		},
+		{
+			name: "put",
+			call: func(c *Client) (map[string]any, error) {
+				return c.put[map[string]any](t.Context(), "app.json", params)
+			},
+			wantMethod: http.MethodPut,
+		},
+		{
+			name: "delete",
+			call: func(c *Client) (map[string]any, error) {
+				return c.delete[map[string]any](t.Context(), "app.json", params)
+			},
+			wantMethod: http.MethodDelete,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, got := newTestServer(t, http.StatusOK, `{"name":"test"}`)
+			c := newTestClient(t, ts)
+			res, err := tc.call(c)
+			if err != nil {
+				t.Fatalf("%s returned error: %v", tc.name, err)
+			}
+			if got.Method != tc.wantMethod {
+				t.Errorf("method: got %q, want %q", got.Method, tc.wantMethod)
+			}
+			if override := got.Header.Get("X-HTTP-Method-Override"); override != tc.wantOverride {
+				t.Errorf("X-HTTP-Method-Override: got %q, want %q", override, tc.wantOverride)
+			}
+			if want := "/k/v1/app.json"; got.Path != want {
+				t.Errorf("path: got %q, want %q", got.Path, want)
+			}
+			if want := `{"app":1}`; got.Body != want {
+				t.Errorf("body: got %q, want %q", got.Body, want)
+			}
+			if want := map[string]any{"name": "test"}; !reflect.DeepEqual(res, want) {
+				t.Errorf("result: got %v, want %v", res, want)
+			}
+		})
+	}
+}

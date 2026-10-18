@@ -141,6 +141,22 @@ func (c *Client) endpoint(path string) *url.URL {
 	return &u
 }
 
+func (c *Client) get[T any](ctx context.Context, path string, params any) (T, error) {
+	return c.do[T](ctx, http.MethodGet, path, params)
+}
+
+func (c *Client) post[T any](ctx context.Context, path string, params any) (T, error) {
+	return c.do[T](ctx, http.MethodPost, path, params)
+}
+
+func (c *Client) put[T any](ctx context.Context, path string, params any) (T, error) {
+	return c.do[T](ctx, http.MethodPut, path, params)
+}
+
+func (c *Client) delete[T any](ctx context.Context, path string, params any) (T, error) {
+	return c.do[T](ctx, http.MethodDelete, path, params)
+}
+
 // do a JSON request and decodes the JSON response as T.
 func (c *Client) do[T any](ctx context.Context, method, path string, params any) (T, error) {
 	var result T

@@ -160,3 +160,39 @@ func TestClientGetPluginApps(t *testing.T) {
 		t.Errorf("apps: got %+v, want %+v", apps, want)
 	}
 }
+
+func TestClientAddPlugin(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{"id": "abcdefghijklmnopabcdefghijklmnop", "version": "1.0.0"}`)
+	c := newTestClient(t, ts, WithGuestSpace(4))
+	res, err := c.AddPlugin(t.Context(), "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6")
+	if err != nil {
+		t.Fatalf("AddPlugin returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPost, "/k/v1/plugin.json", `{"fileKey": "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6"}`)
+	if want := (PluginVersion{ID: "abcdefghijklmnopabcdefghijklmnop", Version: "1.0.0"}); res != want {
+		t.Errorf("response: got %+v, want %+v", res, want)
+	}
+}
+
+func TestClientUpdatePlugin(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{"id": "abcdefghijklmnopabcdefghijklmnop", "version": "1.1.0"}`)
+	c := newTestClient(t, ts)
+	res, err := c.UpdatePlugin(t.Context(), "abcdefghijklmnopabcdefghijklmnop", "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6")
+	if err != nil {
+		t.Fatalf("UpdatePlugin returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPut, "/k/v1/plugin.json",
+		`{"id": "abcdefghijklmnopabcdefghijklmnop", "fileKey": "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6"}`)
+	if want := (PluginVersion{ID: "abcdefghijklmnopabcdefghijklmnop", Version: "1.1.0"}); res != want {
+		t.Errorf("response: got %+v, want %+v", res, want)
+	}
+}
+
+func TestClientDeletePlugin(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{}`)
+	c := newTestClient(t, ts, WithGuestSpace(4))
+	if err := c.DeletePlugin(t.Context(), "abcdefghijklmnopabcdefghijklmnop"); err != nil {
+		t.Fatalf("DeletePlugin returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodDelete, "/k/v1/plugin.json", `{"id": "abcdefghijklmnopabcdefghijklmnop"}`)
+}

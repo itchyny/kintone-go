@@ -104,3 +104,38 @@ func (c *Client) GetPluginApps(ctx context.Context, req GetPluginAppsRequest) ([
 	}
 	return result.Apps, nil
 }
+
+// PluginVersion is the ID and the version of a plugin.
+type PluginVersion struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
+}
+
+// AddPlugin installs the plugin of the file key, which is obtained by
+// [Client.UploadFile]. The guest space of the client is not used.
+func (c *Client) AddPlugin(ctx context.Context, fileKey string) (PluginVersion, error) {
+	params := struct {
+		FileKey string `json:"fileKey"`
+	}{fileKey}
+	return c.withoutGuestSpace().post[PluginVersion](ctx, "plugin.json", params)
+}
+
+// UpdatePlugin updates the plugin with the file key, which is obtained by
+// [Client.UploadFile]. The guest space of the client is not used.
+func (c *Client) UpdatePlugin(ctx context.Context, id, fileKey string) (PluginVersion, error) {
+	params := struct {
+		ID      string `json:"id"`
+		FileKey string `json:"fileKey"`
+	}{id, fileKey}
+	return c.withoutGuestSpace().put[PluginVersion](ctx, "plugin.json", params)
+}
+
+// DeletePlugin uninstalls the plugin. The guest space of the client is not
+// used.
+func (c *Client) DeletePlugin(ctx context.Context, id string) error {
+	params := struct {
+		ID string `json:"id"`
+	}{id}
+	_, err := c.withoutGuestSpace().delete[struct{}](ctx, "plugin.json", params)
+	return err
+}

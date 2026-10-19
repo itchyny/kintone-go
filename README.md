@@ -2,6 +2,10 @@
 
 A Go client for the [kintone](https://kintone.cybozu.co.jp/) REST API.
 
+This is an unofficial client.
+The official SDK for kintone is [kintone/js-sdk](https://github.com/kintone/js-sdk),
+which provides the REST API client for JavaScript as [`@kintone/rest-api-client`](https://github.com/kintone/js-sdk/tree/main/packages/rest-api-client).
+
 ## Installation
 
 ```sh

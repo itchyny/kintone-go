@@ -437,7 +437,7 @@ fileKey, err := client.UploadFile(ctx, "plugin.zip", f)
 if err != nil {
 	return err
 }
-plugin, err := client.AddPlugin(ctx, fileKey)
+plugin, err := client.InstallPlugin(ctx, fileKey)
 if err != nil {
 	return err
 }

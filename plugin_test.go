@@ -161,12 +161,12 @@ func TestClientGetPluginApps(t *testing.T) {
 	}
 }
 
-func TestClientAddPlugin(t *testing.T) {
+func TestClientInstallPlugin(t *testing.T) {
 	ts, got := newTestServer(t, http.StatusOK, `{"id": "abcdefghijklmnopabcdefghijklmnop", "version": "1.0.0"}`)
 	c := newTestClient(t, ts, WithGuestSpace(4))
-	res, err := c.AddPlugin(t.Context(), "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6")
+	res, err := c.InstallPlugin(t.Context(), "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6")
 	if err != nil {
-		t.Fatalf("AddPlugin returned error: %v", err)
+		t.Fatalf("InstallPlugin returned error: %v", err)
 	}
 	assertRequest(t, got, http.MethodPost, "/k/v1/plugin.json", `{"fileKey": "c15b3870-7505-4ab6-9d8d-b9bdbc74f5d6"}`)
 	if want := (PluginVersion{ID: "abcdefghijklmnopabcdefghijklmnop", Version: "1.0.0"}); res != want {
@@ -188,11 +188,11 @@ func TestClientUpdatePlugin(t *testing.T) {
 	}
 }
 
-func TestClientDeletePlugin(t *testing.T) {
+func TestClientUninstallPlugin(t *testing.T) {
 	ts, got := newTestServer(t, http.StatusOK, `{}`)
 	c := newTestClient(t, ts, WithGuestSpace(4))
-	if err := c.DeletePlugin(t.Context(), "abcdefghijklmnopabcdefghijklmnop"); err != nil {
-		t.Fatalf("DeletePlugin returned error: %v", err)
+	if err := c.UninstallPlugin(t.Context(), "abcdefghijklmnopabcdefghijklmnop"); err != nil {
+		t.Fatalf("UninstallPlugin returned error: %v", err)
 	}
 	assertRequest(t, got, http.MethodDelete, "/k/v1/plugin.json", `{"id": "abcdefghijklmnopabcdefghijklmnop"}`)
 }

@@ -111,9 +111,9 @@ type PluginVersion struct {
 	Version string `json:"version"`
 }
 
-// AddPlugin installs the plugin of the file key, which is obtained by
+// InstallPlugin installs the plugin of the file key, which is obtained by
 // [Client.UploadFile]. The guest space of the client is not used.
-func (c *Client) AddPlugin(ctx context.Context, fileKey string) (PluginVersion, error) {
+func (c *Client) InstallPlugin(ctx context.Context, fileKey string) (PluginVersion, error) {
 	params := struct {
 		FileKey string `json:"fileKey"`
 	}{fileKey}
@@ -130,9 +130,9 @@ func (c *Client) UpdatePlugin(ctx context.Context, id, fileKey string) (PluginVe
 	return c.withoutGuestSpace().put[PluginVersion](ctx, "plugin.json", params)
 }
 
-// DeletePlugin uninstalls the plugin. The guest space of the client is not
+// UninstallPlugin uninstalls the plugin. The guest space of the client is not
 // used.
-func (c *Client) DeletePlugin(ctx context.Context, id string) error {
+func (c *Client) UninstallPlugin(ctx context.Context, id string) error {
 	params := struct {
 		ID string `json:"id"`
 	}{id}

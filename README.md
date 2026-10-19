@@ -107,6 +107,25 @@ err = client.DeleteRecords(ctx, app, []int64{added.ID}, []int64{revision})
 `UpdateRecord`, `UpdateRecords` and `UpsertRecords` can also specify a record by
 the value of a field with `UpdateKey` instead of `ID`.
 
+`AllComments` iterates over the comments on a record.
+
+<details>
+<summary>Example</summary>
+
+```go
+if _, err := client.AddComment(ctx, app, id, "Hello"); err != nil {
+	return err
+}
+for comment, err := range client.AllComments(ctx, kintone.GetCommentsRequest{App: app, Record: id}) {
+	if err != nil {
+		return err
+	}
+	fmt.Println(comment.Creator.Code, comment.Text)
+}
+```
+
+</details>
+
 ### Cursor
 
 `AllRecords` iterates over all the records matching the query using a cursor.
@@ -234,6 +253,22 @@ if err := client.DeployApps(ctx, []kintone.AppDeployment{{App: added.App}}); err
 	return err
 }
 err = client.WaitForDeploy(ctx, []int64{added.App})
+```
+
+</details>
+
+`AllApps` iterates over the apps.
+
+<details>
+<summary>Example</summary>
+
+```go
+for app, err := range client.AllApps(ctx, kintone.GetAppsRequest{Name: "Deals"}) {
+	if err != nil {
+		return err
+	}
+	fmt.Println(app.AppID, app.Name)
+}
 ```
 
 </details>

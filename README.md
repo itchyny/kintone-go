@@ -1,5 +1,7 @@
 # kintone-go
 
+[![pkg.go.dev](https://pkg.go.dev/badge/github.com/itchyny/kintone-go)](https://pkg.go.dev/github.com/itchyny/kintone-go)
+
 A Go client for the [kintone](https://kintone.cybozu.co.jp/) REST API.
 
 This is an unofficial client.

@@ -3,6 +3,7 @@ package kintone
 import (
 	"context"
 	"fmt"
+	"iter"
 	"strings"
 	"time"
 )
@@ -53,6 +54,23 @@ func (c *Client) GetApps(ctx context.Context, req GetAppsRequest) ([]App, error)
 		return nil, err
 	}
 	return result.Apps, nil
+}
+
+var allAppsLimit int64 = 100
+
+// AllApps iterates over the apps, using [Client.GetApps]. Offset of the
+// request is the number of apps to skip, and Limit is the number of apps to
+// get in each request.
+func (c *Client) AllApps(ctx context.Context, req GetAppsRequest) iter.Seq2[App, error] {
+	if req.Limit == 0 {
+		req.Limit = allAppsLimit
+	}
+	return paginate(req.Offset, func(offset int64) ([]App, bool, error) {
+		r := req
+		r.Offset = offset
+		apps, err := c.GetApps(ctx, r)
+		return apps, int64(len(apps)) == r.Limit, err
+	})
 }
 
 // AddAppRequest is the request of [Client.AddApp].

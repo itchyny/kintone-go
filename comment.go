@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"iter"
+	"strings"
 	"time"
 )
 
@@ -47,6 +49,25 @@ func (c *Client) GetComments(ctx context.Context, req GetCommentsRequest) (*GetC
 		return nil, err
 	}
 	return &result, nil
+}
+
+// AllComments iterates over the comments on a record in the order of the
+// request, using [Client.GetComments]. Offset of the request is the number of
+// comments to skip, and Limit is the number of comments to get in each
+// request.
+func (c *Client) AllComments(ctx context.Context, req GetCommentsRequest) iter.Seq2[Comment, error] {
+	return paginate(req.Offset, func(offset int64) ([]Comment, bool, error) {
+		r := req
+		r.Offset = offset
+		res, err := c.GetComments(ctx, r)
+		if err != nil {
+			return nil, false, err
+		}
+		if strings.EqualFold(r.Order, "asc") {
+			return res.Comments, res.Newer, nil
+		}
+		return res.Comments, res.Older, nil
+	})
 }
 
 // AddComment adds a comment on a record and returns the comment ID.

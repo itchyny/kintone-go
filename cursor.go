@@ -180,3 +180,25 @@ func (c *Client) AllRecordsByID(ctx context.Context, req AllRecordsByIDRequest) 
 		}
 	}
 }
+
+func paginate[T any](offset int64, get func(offset int64) ([]T, bool, error)) iter.Seq2[T, error] {
+	return func(yield func(T, error) bool) {
+		for {
+			items, more, err := get(offset)
+			if err != nil {
+				var zero T
+				yield(zero, err)
+				return
+			}
+			for _, item := range items {
+				if !yield(item, nil) {
+					return
+				}
+			}
+			if !more || len(items) == 0 {
+				return
+			}
+			offset += int64(len(items))
+		}
+	}
+}

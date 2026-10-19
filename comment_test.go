@@ -64,6 +64,93 @@ func TestClientGetComments(t *testing.T) {
 	}
 }
 
+func TestClientAllComments(t *testing.T) {
+	testCases := []struct {
+		name       string
+		req        GetCommentsRequest
+		responses  []response
+		wantBodies []string
+		wantIDs    []int64
+	}{
+		{
+			name: "default order",
+			req:  GetCommentsRequest{App: 1, Record: 2, Limit: 2},
+			responses: []response{
+				{http.StatusOK, `{"comments": [{"id": "5"}, {"id": "4"}], "older": true, "newer": false}`},
+				{http.StatusOK, `{"comments": [{"id": "3"}], "older": false, "newer": true}`},
+			},
+			wantBodies: []string{
+				`{"app": 1, "record": 2, "limit": 2}`,
+				`{"app": 1, "record": 2, "offset": 2, "limit": 2}`,
+			},
+			wantIDs: []int64{5, 4, 3},
+		},
+		{
+			name: "ascending order",
+			req:  GetCommentsRequest{App: 1, Record: 2, Order: "asc", Offset: 1},
+			responses: []response{
+				{http.StatusOK, `{"comments": [{"id": "2"}, {"id": "3"}], "older": true, "newer": true}`},
+				{http.StatusOK, `{"comments": [{"id": "4"}], "older": true, "newer": false}`},
+			},
+			wantBodies: []string{
+				`{"app": 1, "record": 2, "order": "asc", "offset": 1}`,
+				`{"app": 1, "record": 2, "order": "asc", "offset": 3}`,
+			},
+			wantIDs: []int64{2, 3, 4},
+		},
+		{
+			name: "ascending order in upper case",
+			req:  GetCommentsRequest{App: 1, Record: 2, Order: "ASC"},
+			responses: []response{
+				{http.StatusOK, `{"comments": [{"id": "1"}], "older": false, "newer": true}`},
+				{http.StatusOK, `{"comments": [{"id": "2"}], "older": true, "newer": false}`},
+			},
+			wantBodies: []string{
+				`{"app": 1, "record": 2, "order": "ASC"}`,
+				`{"app": 1, "record": 2, "order": "ASC", "offset": 1}`,
+			},
+			wantIDs: []int64{1, 2},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, requests := newSequenceServer(t, tc.responses...)
+			c := newTestClient(t, ts)
+			var ids []int64
+			for comment, err := range c.AllComments(t.Context(), tc.req) {
+				if err != nil {
+					t.Fatalf("AllComments returned error: %v", err)
+				}
+				ids = append(ids, comment.ID)
+			}
+			reqs := requests()
+			if len(reqs) != len(tc.wantBodies) {
+				t.Fatalf("number of requests: got %d, want %d", len(reqs), len(tc.wantBodies))
+			}
+			for i, body := range tc.wantBodies {
+				assertRequest(t, &reqs[i], http.MethodGet, "/k/v1/record/comments.json", body)
+			}
+			if !reflect.DeepEqual(ids, tc.wantIDs) {
+				t.Errorf("comment IDs: got %v, want %v", ids, tc.wantIDs)
+			}
+		})
+	}
+}
+
+func TestClientAllCommentsError(t *testing.T) {
+	ts, _ := newSequenceServer(t,
+		response{http.StatusInternalServerError, `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`},
+	)
+	c := newTestClient(t, ts)
+	var err error
+	for _, e := range c.AllComments(t.Context(), GetCommentsRequest{App: 1, Record: 2}) {
+		err = e
+	}
+	if !IsErrorCode(err, "TEST_ERROR") {
+		t.Errorf("AllComments returned unexpected error: %v", err)
+	}
+}
+
 func TestClientAddComment(t *testing.T) {
 	testCases := []struct {
 		name     string

@@ -117,6 +117,108 @@ func TestClientGetApps(t *testing.T) {
 	}
 }
 
+func TestClientAllApps(t *testing.T) {
+	setValue(t, &allAppsLimit, 2)
+	testCases := []struct {
+		name       string
+		req        GetAppsRequest
+		responses  []response
+		wantBodies []string
+		wantIDs    []int64
+	}{
+		{
+			name: "default limit",
+			req:  GetAppsRequest{Name: "Deals"},
+			responses: []response{
+				{http.StatusOK, `{"apps": [{"appId": "1"}, {"appId": "2"}]}`},
+				{http.StatusOK, `{"apps": [{"appId": "3"}]}`},
+			},
+			wantBodies: []string{
+				`{"name": "Deals", "limit": 2}`,
+				`{"name": "Deals", "offset": 2, "limit": 2}`,
+			},
+			wantIDs: []int64{1, 2, 3},
+		},
+		{
+			name: "offset and limit",
+			req:  GetAppsRequest{Offset: 1, Limit: 3},
+			responses: []response{
+				{http.StatusOK, `{"apps": [{"appId": "2"}, {"appId": "3"}, {"appId": "4"}]}`},
+				{http.StatusOK, `{"apps": []}`},
+			},
+			wantBodies: []string{
+				`{"offset": 1, "limit": 3}`,
+				`{"offset": 4, "limit": 3}`,
+			},
+			wantIDs: []int64{2, 3, 4},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ts, requests := newSequenceServer(t, tc.responses...)
+			c := newTestClient(t, ts)
+			var ids []int64
+			for app, err := range c.AllApps(t.Context(), tc.req) {
+				if err != nil {
+					t.Fatalf("AllApps returned error: %v", err)
+				}
+				ids = append(ids, app.AppID)
+			}
+			reqs := requests()
+			if len(reqs) != len(tc.wantBodies) {
+				t.Fatalf("number of requests: got %d, want %d", len(reqs), len(tc.wantBodies))
+			}
+			for i, body := range tc.wantBodies {
+				assertRequest(t, &reqs[i], http.MethodGet, "/k/v1/apps.json", body)
+			}
+			if !reflect.DeepEqual(ids, tc.wantIDs) {
+				t.Errorf("app IDs: got %v, want %v", ids, tc.wantIDs)
+			}
+		})
+	}
+}
+
+func TestClientAllAppsError(t *testing.T) {
+	setValue(t, &allAppsLimit, 2)
+	ts, _ := newSequenceServer(t,
+		response{http.StatusOK, `{"apps": [{"appId": "1"}, {"appId": "2"}]}`},
+		response{http.StatusInternalServerError, `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`},
+	)
+	c := newTestClient(t, ts)
+	var ids []int64
+	var err error
+	for app, e := range c.AllApps(t.Context(), GetAppsRequest{}) {
+		if e != nil {
+			err = e
+			break
+		}
+		ids = append(ids, app.AppID)
+	}
+	if !IsErrorCode(err, "TEST_ERROR") {
+		t.Errorf("AllApps returned unexpected error: %v", err)
+	}
+	if want := []int64{1, 2}; !reflect.DeepEqual(ids, want) {
+		t.Errorf("app IDs: got %v, want %v", ids, want)
+	}
+}
+
+func TestClientAllAppsBreak(t *testing.T) {
+	setValue(t, &allAppsLimit, 2)
+	ts, requests := newSequenceServer(t, response{http.StatusOK, `{"apps": [{"appId": "1"}, {"appId": "2"}]}`})
+	c := newTestClient(t, ts)
+	for app, err := range c.AllApps(t.Context(), GetAppsRequest{}) {
+		if err != nil {
+			t.Fatalf("AllApps returned error: %v", err)
+		}
+		if app.AppID == 2 {
+			break
+		}
+	}
+	if reqs := requests(); len(reqs) != 1 {
+		t.Errorf("number of requests: got %d, want %d", len(reqs), 1)
+	}
+}
+
 func TestClientAddApp(t *testing.T) {
 	testCases := []struct {
 		name     string

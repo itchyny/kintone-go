@@ -75,6 +75,20 @@ for _, record := range res.Records {
 
 </details>
 
+`kintone.Quote` quotes a string value in a query, escaping double quotes and backslashes.
+
+<details>
+<summary>Example</summary>
+
+```go
+res, err := client.GetRecords(ctx, kintone.GetRecordsRequest{
+	App:   app,
+	Query: "customer = " + kintone.Quote(customer),
+})
+```
+
+</details>
+
 When writing records, the field type can be omitted.
 
 <details>

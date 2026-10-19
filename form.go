@@ -2,44 +2,42 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"net/http"
 )
 
 // FieldProperty is the setting of a field in the form.
-//
-// When updating fields, the properties not set are not changed. To clear a
-// property, set a pointer to an empty string or an empty slice.
 type FieldProperty struct {
 	Type            FieldType                `json:"type"`
-	Code            string                   `json:"code,omitempty"`
-	Label           string                   `json:"label,omitempty"`
-	NoLabel         *bool                    `json:"noLabel,omitempty"`
-	Required        *bool                    `json:"required,omitempty"`
-	Unique          *bool                    `json:"unique,omitempty"`
-	MaxValue        *string                  `json:"maxValue,omitempty"`
-	MinValue        *string                  `json:"minValue,omitempty"`
-	MaxLength       *string                  `json:"maxLength,omitempty"`
-	MinLength       *string                  `json:"minLength,omitempty"`
-	DefaultValue    any                      `json:"defaultValue,omitempty"`
-	DefaultNowValue *bool                    `json:"defaultNowValue,omitempty"`
-	Options         map[string]FieldOption   `json:"options,omitempty"`
-	Align           string                   `json:"align,omitempty"`
-	Expression      *string                  `json:"expression,omitempty"`
-	HideExpression  *bool                    `json:"hideExpression,omitempty"`
-	Digit           *bool                    `json:"digit,omitempty"`
-	ThumbnailSize   string                   `json:"thumbnailSize,omitempty"`
-	Protocol        string                   `json:"protocol,omitempty"`
-	Format          string                   `json:"format,omitempty"`
-	DisplayScale    *string                  `json:"displayScale,omitempty"`
-	Unit            *string                  `json:"unit,omitempty"`
-	UnitPosition    string                   `json:"unitPosition,omitempty"`
+	Code            string                   `json:"code,omitzero"`
+	Label           string                   `json:"label,omitzero"`
+	NoLabel         *bool                    `json:"noLabel,omitzero"`
+	Required        *bool                    `json:"required,omitzero"`
+	Unique          *bool                    `json:"unique,omitzero"`
+	MaxValue        *string                  `json:"maxValue,omitzero"`
+	MinValue        *string                  `json:"minValue,omitzero"`
+	MaxLength       *string                  `json:"maxLength,omitzero"`
+	MinLength       *string                  `json:"minLength,omitzero"`
+	DefaultValue    any                      `json:"defaultValue,omitzero"`
+	DefaultNowValue *bool                    `json:"defaultNowValue,omitzero"`
+	Options         map[string]FieldOption   `json:"options,omitzero"`
+	Align           string                   `json:"align,omitzero"`
+	Expression      *string                  `json:"expression,omitzero"`
+	HideExpression  *bool                    `json:"hideExpression,omitzero"`
+	Digit           *bool                    `json:"digit,omitzero"`
+	ThumbnailSize   string                   `json:"thumbnailSize,omitzero"`
+	Protocol        string                   `json:"protocol,omitzero"`
+	Format          string                   `json:"format,omitzero"`
+	DisplayScale    *string                  `json:"displayScale,omitzero"`
+	Unit            *string                  `json:"unit,omitzero"`
+	UnitPosition    string                   `json:"unitPosition,omitzero"`
 	Entities        []FieldEntity            `json:"entities,omitzero"`
-	ReferenceTable  *ReferenceTable          `json:"referenceTable,omitempty"`
-	Lookup          *Lookup                  `json:"lookup,omitempty"`
-	OpenGroup       *bool                    `json:"openGroup,omitempty"`
-	Fields          map[string]FieldProperty `json:"fields,omitempty"`
-	Enabled         *bool                    `json:"enabled,omitempty"`
+	ReferenceTable  *ReferenceTable          `json:"referenceTable,omitzero"`
+	Lookup          *Lookup                  `json:"lookup,omitzero"`
+	OpenGroup       *bool                    `json:"openGroup,omitzero"`
+	Fields          map[string]FieldProperty `json:"fields,omitzero"`
+	Enabled         *bool                    `json:"enabled,omitzero"`
 }
 
 // FieldOption is an option of a check box, radio button, multi-choice or
@@ -52,7 +50,7 @@ type FieldOption struct {
 // FieldEntity is an entity specified by the type and the code, such as a user,
 // department or group of the options of a user selection field.
 type FieldEntity struct {
-	Code string     `json:"code,omitempty"`
+	Code string     `json:"code,omitzero"`
 	Type EntityType `json:"type"`
 }
 
@@ -60,10 +58,10 @@ type FieldEntity struct {
 type ReferenceTable struct {
 	RelatedApp    RelatedApp              `json:"relatedApp"`
 	Condition     ReferenceTableCondition `json:"condition"`
-	FilterCond    string                  `json:"filterCond,omitempty"`
-	DisplayFields []string                `json:"displayFields,omitempty"`
-	Sort          string                  `json:"sort,omitempty"`
-	Size          string                  `json:"size,omitempty"`
+	FilterCond    string                  `json:"filterCond,omitzero"`
+	DisplayFields []string                `json:"displayFields,omitzero"`
+	Sort          string                  `json:"sort,omitzero"`
+	Size          string                  `json:"size,omitzero"`
 }
 
 // ReferenceTableCondition is the condition of the records to show in a
@@ -76,20 +74,18 @@ type ReferenceTableCondition struct {
 // RelatedApp is an app referenced by a related records or lookup field,
 // specified by either App or Code.
 type RelatedApp struct {
-	App  int64  `json:"app,string,omitempty"`
-	Code string `json:"code,omitempty"`
+	App  int64  `json:"app,string,omitzero"`
+	Code string `json:"code,omitzero"`
 }
 
-// Lookup is the setting of a lookup field. When updating the field, the
-// settings not set are not changed. To clear a setting, set a pointer to an
-// empty string or an empty slice.
+// Lookup is the setting of a lookup field.
 type Lookup struct {
 	RelatedApp         RelatedApp     `json:"relatedApp"`
 	RelatedKeyField    string         `json:"relatedKeyField"`
 	FieldMappings      []FieldMapping `json:"fieldMappings,omitzero"`
 	LookupPickerFields []string       `json:"lookupPickerFields,omitzero"`
-	FilterCond         *string        `json:"filterCond,omitempty"`
-	Sort               *string        `json:"sort,omitempty"`
+	FilterCond         *string        `json:"filterCond,omitzero"`
+	Sort               *string        `json:"sort,omitzero"`
 }
 
 // FieldMapping is a mapping of a field copied by a lookup field.
@@ -104,7 +100,7 @@ func (p *FieldProperty) UnmarshalJSON(b []byte) error {
 	type property FieldProperty
 	var v struct {
 		property
-		Entities json.RawMessage `json:"entities"`
+		Entities jsontext.Value `json:"entities"`
 	}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
@@ -119,8 +115,8 @@ func (l *Lookup) UnmarshalJSON(b []byte) error {
 	type lookup Lookup
 	var v struct {
 		lookup
-		FieldMappings      json.RawMessage `json:"fieldMappings"`
-		LookupPickerFields json.RawMessage `json:"lookupPickerFields"`
+		FieldMappings      jsontext.Value `json:"fieldMappings"`
+		LookupPickerFields jsontext.Value `json:"lookupPickerFields"`
 	}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
@@ -132,11 +128,11 @@ func (l *Lookup) UnmarshalJSON(b []byte) error {
 	return unmarshalList(v.LookupPickerFields, &l.LookupPickerFields)
 }
 
-func unmarshalList[T any](b json.RawMessage, v *[]T) error {
-	if len(b) == 0 || string(b) == `""` {
+func unmarshalList[T any](value jsontext.Value, v *[]T) error {
+	if len(value) == 0 || string(value) == `""` {
 		return nil
 	}
-	return json.Unmarshal(b, v)
+	return json.Unmarshal(value, v)
 }
 
 // FormFields is the fields of an app.
@@ -167,7 +163,7 @@ func (c *Client) updateFormFields(ctx context.Context, method string, app int64,
 	params := struct {
 		App        int64                    `json:"app"`
 		Properties map[string]FieldProperty `json:"properties"`
-		Revision   int64                    `json:"revision,omitempty"`
+		Revision   int64                    `json:"revision,omitzero"`
 	}{app, properties, revision}
 	return c.updateAppSettings(ctx, method, "app/form/fields.json", params)
 }
@@ -178,7 +174,7 @@ func (c *Client) DeleteFormFields(ctx context.Context, app int64, fields []strin
 	params := struct {
 		App      int64    `json:"app"`
 		Fields   []string `json:"fields"`
-		Revision int64    `json:"revision,omitempty"`
+		Revision int64    `json:"revision,omitzero"`
 	}{app, fields, revision}
 	return c.updateAppSettings(ctx, http.MethodDelete, "app/form/fields.json", params)
 }
@@ -193,9 +189,9 @@ type FormLayout struct {
 // or the group, and Layout is the rows in the group.
 type LayoutRow struct {
 	Type   LayoutType    `json:"type"`
-	Code   string        `json:"code,omitempty"`
-	Fields []LayoutField `json:"fields,omitempty"`
-	Layout []LayoutRow   `json:"layout,omitempty"`
+	Code   string        `json:"code,omitzero"`
+	Fields []LayoutField `json:"fields,omitzero"`
+	Layout []LayoutRow   `json:"layout,omitzero"`
 }
 
 // LayoutType is the type of a layout row.
@@ -212,18 +208,18 @@ const (
 // and ElementID is the element ID of a label, spacer or border field.
 type LayoutField struct {
 	Type      FieldType  `json:"type"`
-	Code      string     `json:"code,omitempty"`
-	Label     string     `json:"label,omitempty"`
-	ElementID string     `json:"elementId,omitempty"`
-	Size      *FieldSize `json:"size,omitempty"`
+	Code      string     `json:"code,omitzero"`
+	Label     string     `json:"label,omitzero"`
+	ElementID string     `json:"elementId,omitzero"`
+	Size      *FieldSize `json:"size,omitzero"`
 }
 
 // FieldSize is the size of a field in pixels. Height includes the field name,
 // and InnerHeight does not.
 type FieldSize struct {
-	Width       string `json:"width,omitempty"`
-	Height      string `json:"height,omitempty"`
-	InnerHeight string `json:"innerHeight,omitempty"`
+	Width       string `json:"width,omitzero"`
+	Height      string `json:"height,omitzero"`
+	InnerHeight string `json:"innerHeight,omitzero"`
 }
 
 // GetFormLayout gets the layout of the form of an app. Lang of the request is
@@ -242,7 +238,7 @@ func (c *Client) UpdateFormLayout(ctx context.Context, app int64, layout []Layou
 	params := struct {
 		App      int64       `json:"app"`
 		Layout   []LayoutRow `json:"layout"`
-		Revision int64       `json:"revision,omitempty"`
+		Revision int64       `json:"revision,omitzero"`
 	}{app, layout, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/form/layout.json", params)
 }

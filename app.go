@@ -37,12 +37,12 @@ func (c *Client) GetApp(ctx context.Context, id int64) (*App, error) {
 
 // GetAppsRequest is the request of [Client.GetApps].
 type GetAppsRequest struct {
-	IDs      []int64  `json:"ids,omitempty"`
-	Codes    []string `json:"codes,omitempty"`
-	Name     string   `json:"name,omitempty"`
-	SpaceIDs []int64  `json:"spaceIds,omitempty"`
-	Offset   int64    `json:"offset,omitempty"`
-	Limit    int64    `json:"limit,omitempty"`
+	IDs      []int64  `json:"ids,omitzero"`
+	Codes    []string `json:"codes,omitzero"`
+	Name     string   `json:"name,omitzero"`
+	SpaceIDs []int64  `json:"spaceIds,omitzero"`
+	Offset   int64    `json:"offset,omitzero"`
+	Limit    int64    `json:"limit,omitzero"`
 }
 
 // GetApps gets the information of apps.
@@ -76,8 +76,8 @@ func (c *Client) AllApps(ctx context.Context, req GetAppsRequest) iter.Seq2[App,
 // AddAppRequest is the request of [Client.AddApp].
 type AddAppRequest struct {
 	Name   string `json:"name"`
-	Space  int64  `json:"space,omitempty"`
-	Thread int64  `json:"thread,omitempty"`
+	Space  int64  `json:"space,omitzero"`
+	Thread int64  `json:"thread,omitzero"`
 }
 
 // AppRevision is the ID and the revision of an app.
@@ -95,7 +95,7 @@ func (c *Client) AddApp(ctx context.Context, req AddAppRequest) (AppRevision, er
 // The revision is not checked if Revision is zero.
 type AppDeployment struct {
 	App      int64 `json:"app"`
-	Revision int64 `json:"revision,omitempty"`
+	Revision int64 `json:"revision,omitzero"`
 }
 
 // DeployApps deploys the settings of the apps in the preview environment to
@@ -113,7 +113,7 @@ func (c *Client) RevertApps(ctx context.Context, apps []AppDeployment) error {
 func (c *Client) deployApps(ctx context.Context, apps []AppDeployment, revert bool) error {
 	params := struct {
 		Apps   []AppDeployment `json:"apps"`
-		Revert bool            `json:"revert,omitempty"`
+		Revert bool            `json:"revert,omitzero"`
 	}{apps, revert}
 	_, err := c.post[struct{}](ctx, "preview/app/deploy.json", params)
 	return err
@@ -190,7 +190,7 @@ func (c *Client) WaitForDeploy(ctx context.Context, apps []int64) error {
 // If Preview is true, the settings in the preview environment are returned.
 type GetAppSettingsRequest struct {
 	App     int64  `json:"app"`
-	Lang    string `json:"lang,omitempty"`
+	Lang    string `json:"lang,omitzero"`
 	Preview bool   `json:"-"`
 }
 
@@ -245,8 +245,8 @@ type AppSpace struct {
 
 // GetAppsStatisticsRequest is the request of [Client.GetAppsStatistics].
 type GetAppsStatisticsRequest struct {
-	Offset int64 `json:"offset,omitempty"`
-	Limit  int64 `json:"limit,omitempty"`
+	Offset int64 `json:"offset,omitzero"`
+	Limit  int64 `json:"limit,omitzero"`
 }
 
 // GetAppsStatistics gets the usage of apps. The guest space of the client is

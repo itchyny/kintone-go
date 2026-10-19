@@ -29,7 +29,7 @@ func (c *Client) AddAppPlugins(ctx context.Context, app int64, ids []string, rev
 	params := struct {
 		App      int64    `json:"app"`
 		IDs      []string `json:"ids"`
-		Revision int64    `json:"revision,omitempty"`
+		Revision int64    `json:"revision,omitzero"`
 	}{app, ids, revision}
 	return c.updateAppSettings(ctx, http.MethodPost, "app/plugins.json", params)
 }
@@ -46,9 +46,9 @@ type Plugin struct {
 
 // GetPluginsRequest is the request of [Client.GetPlugins].
 type GetPluginsRequest struct {
-	Offset int64    `json:"offset,omitempty"`
-	Limit  int64    `json:"limit,omitempty"`
-	IDs    []string `json:"ids,omitempty"`
+	Offset int64    `json:"offset,omitzero"`
+	Limit  int64    `json:"limit,omitzero"`
+	IDs    []string `json:"ids,omitzero"`
 }
 
 // GetPlugins gets the installed plugins. The guest space of the client is not
@@ -59,8 +59,8 @@ func (c *Client) GetPlugins(ctx context.Context, req GetPluginsRequest) ([]Plugi
 
 // GetRequiredPluginsRequest is the request of [Client.GetRequiredPlugins].
 type GetRequiredPluginsRequest struct {
-	Offset int64 `json:"offset,omitempty"`
-	Limit  int64 `json:"limit,omitempty"`
+	Offset int64 `json:"offset,omitzero"`
+	Limit  int64 `json:"limit,omitzero"`
 }
 
 // GetRequiredPlugins gets the plugins that are required to be installed.
@@ -83,8 +83,8 @@ func (c *Client) getPlugins(ctx context.Context, path string, params any) ([]Plu
 // ID is the plugin ID.
 type GetPluginAppsRequest struct {
 	ID     string `json:"id"`
-	Offset int64  `json:"offset,omitempty"`
-	Limit  int64  `json:"limit,omitempty"`
+	Offset int64  `json:"offset,omitzero"`
+	Limit  int64  `json:"limit,omitzero"`
 }
 
 // PluginApp is an app which the plugin is added to.
@@ -162,12 +162,9 @@ func (c *Client) GetAppPluginConfig(ctx context.Context, req GetAppPluginConfigR
 }
 
 // UpdateAppPluginConfig updates the config of a plugin added to an app in the
-// preview environment and returns the new revision. Nil config is sent as an
-// empty object. This uses an API in the API lab of kintone.
+// preview environment and returns the new revision. This uses an API in the
+// API lab of kintone.
 func (c *Client) UpdateAppPluginConfig(ctx context.Context, app int64, id string, config map[string]string) (int64, error) {
-	if config == nil {
-		config = map[string]string{}
-	}
 	params := struct {
 		App    int64             `json:"app"`
 		ID     string            `json:"id"`

@@ -7,14 +7,13 @@ import (
 
 // Customization is the JavaScript and CSS customization of an app.
 type Customization struct {
-	Scope    string              `json:"scope,omitempty"`
-	Desktop  *CustomizationFiles `json:"desktop,omitempty"`
-	Mobile   *CustomizationFiles `json:"mobile,omitempty"`
-	Revision int64               `json:"revision,string,omitempty"`
+	Scope    string              `json:"scope,omitzero"`
+	Desktop  *CustomizationFiles `json:"desktop,omitzero"`
+	Mobile   *CustomizationFiles `json:"mobile,omitzero"`
+	Revision int64               `json:"revision,string,omitzero"`
 }
 
 // CustomizationFiles is the JavaScript and CSS files of the customization.
-// Nil JS or CSS is not sent, but an empty one is sent.
 type CustomizationFiles struct {
 	JS  []CustomizationFile `json:"js,omitzero"`
 	CSS []CustomizationFile `json:"css,omitzero"`
@@ -24,8 +23,8 @@ type CustomizationFiles struct {
 // specified by URL, and File is set for uploaded files.
 type CustomizationFile struct {
 	Type string    `json:"type"`
-	URL  string    `json:"url,omitempty"`
-	File *FileInfo `json:"file,omitempty"`
+	URL  string    `json:"url,omitzero"`
+	File *FileInfo `json:"file,omitzero"`
 }
 
 // GetCustomization gets the JavaScript and CSS customization of an app. Lang
@@ -44,7 +43,7 @@ func (c *Client) UpdateCustomization(ctx context.Context, app int64, customizati
 	params := struct {
 		App int64 `json:"app"`
 		Customization
-		Revision int64 `json:"revision,omitempty"`
+		Revision int64 `json:"revision,omitzero"`
 	}{app, customization, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/customize.json", params)
 }

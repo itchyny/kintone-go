@@ -1,6 +1,9 @@
 package kintone
 
-import "encoding/json"
+import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
+)
 
 // Field is a field value of a record.
 //
@@ -22,7 +25,7 @@ import "encoding/json"
 //		"files": {Value: []kintone.FileInfo{{FileKey: fileKey}}},
 //	}
 type Field struct {
-	Type  FieldType `json:"type,omitempty"`
+	Type  FieldType `json:"type,omitzero"`
 	Value any       `json:"value"`
 }
 
@@ -69,7 +72,7 @@ const (
 // Entity is a user, department or group.
 type Entity struct {
 	Code string `json:"code"`
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitzero"`
 }
 
 // EntityType is the type of an entity.
@@ -88,58 +91,58 @@ const (
 // FileInfo is a file of an attachment field.
 // Only FileKey is required when writing records.
 type FileInfo struct {
-	ContentType string `json:"contentType,omitempty"`
+	ContentType string `json:"contentType,omitzero"`
 	FileKey     string `json:"fileKey"`
-	Name        string `json:"name,omitempty"`
-	Size        int64  `json:"size,omitempty,string"`
+	Name        string `json:"name,omitzero"`
+	Size        int64  `json:"size,omitzero,string"`
 }
 
 // SubtableRow is a row of a table field.
 type SubtableRow struct {
-	ID    string `json:"id,omitempty"`
+	ID    string `json:"id,omitzero"`
 	Value Record `json:"value"`
 }
 
 // UnmarshalJSON decodes the field value into the Go type of the field type.
 func (f *Field) UnmarshalJSON(b []byte) error {
-	var raw struct {
-		Type  FieldType       `json:"type"`
-		Value json.RawMessage `json:"value"`
+	var v struct {
+		Type  FieldType      `json:"type"`
+		Value jsontext.Value `json:"value"`
 	}
-	if err := json.Unmarshal(b, &raw); err != nil {
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 	var err error
-	f.Type = raw.Type
-	switch raw.Type {
+	f.Type = v.Type
+	switch v.Type {
 	case FieldTypeRecordNumber, FieldTypeID, FieldTypeRevision,
 		FieldTypeCreatedTime, FieldTypeUpdatedTime,
 		FieldTypeSingleLineText, FieldTypeMultiLineText, FieldTypeRichText,
 		FieldTypeNumber, FieldTypeCalc, FieldTypeRadioButton, FieldTypeDropDown,
 		FieldTypeDate, FieldTypeTime, FieldTypeDateTime, FieldTypeLink,
 		FieldTypeStatus:
-		f.Value, err = decodeValue[string](raw.Value)
+		f.Value, err = decodeValue[string](v.Value)
 	case FieldTypeCheckBox, FieldTypeMultiSelect, FieldTypeCategory:
-		f.Value, err = decodeValue[[]string](raw.Value)
+		f.Value, err = decodeValue[[]string](v.Value)
 	case FieldTypeCreator, FieldTypeModifier:
-		f.Value, err = decodeValue[Entity](raw.Value)
+		f.Value, err = decodeValue[Entity](v.Value)
 	case FieldTypeUserSelect, FieldTypeOrganizationSelect,
 		FieldTypeGroupSelect, FieldTypeStatusAssignee:
-		f.Value, err = decodeValue[[]Entity](raw.Value)
+		f.Value, err = decodeValue[[]Entity](v.Value)
 	case FieldTypeFile:
-		f.Value, err = decodeValue[[]FileInfo](raw.Value)
+		f.Value, err = decodeValue[[]FileInfo](v.Value)
 	case FieldTypeSubtable:
-		f.Value, err = decodeValue[[]SubtableRow](raw.Value)
+		f.Value, err = decodeValue[[]SubtableRow](v.Value)
 	default:
-		f.Value, err = decodeValue[any](raw.Value)
+		f.Value, err = decodeValue[any](v.Value)
 	}
 	return err
 }
 
-func decodeValue[T any](b json.RawMessage) (any, error) {
+func decodeValue[T any](value jsontext.Value) (any, error) {
 	var v T
-	if len(b) > 0 {
-		if err := json.Unmarshal(b, &v); err != nil {
+	if len(value) > 0 {
+		if err := json.Unmarshal(value, &v); err != nil {
 			return nil, err
 		}
 	}

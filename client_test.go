@@ -2,7 +2,7 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"
@@ -355,8 +355,8 @@ func TestClientDoMarshalError(t *testing.T) {
 	ts, got := newTestServer(t, http.StatusOK, `{}`)
 	c := newTestClient(t, ts)
 	_, err := c.do[struct{}](t.Context(), http.MethodPost, "record.json", map[string]any{"x": func() {}})
-	if _, ok := errors.AsType[*json.UnsupportedTypeError](err); !ok {
-		t.Errorf("do should return *json.UnsupportedTypeError but got: %v", err)
+	if _, ok := errors.AsType[*json.SemanticError](err); !ok {
+		t.Errorf("do should return *json.SemanticError but got: %v", err)
 	}
 	if got.Method != "" {
 		t.Errorf("request should not be sent but got %s", got.Method)

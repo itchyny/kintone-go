@@ -6,22 +6,21 @@ import (
 )
 
 // GeneralNotifications is the general notification settings of an app.
-// Nil Notifications is not sent, but an empty one is sent.
 type GeneralNotifications struct {
 	Notifications     []GeneralNotification `json:"notifications,omitzero"`
-	NotifyToCommenter *bool                 `json:"notifyToCommenter,omitempty"`
-	Revision          int64                 `json:"revision,string,omitempty"`
+	NotifyToCommenter *bool                 `json:"notifyToCommenter,omitzero"`
+	Revision          int64                 `json:"revision,string,omitzero"`
 }
 
 // GeneralNotification is a general notification setting.
 type GeneralNotification struct {
 	Entity        FieldEntity `json:"entity"`
-	IncludeSubs   bool        `json:"includeSubs,omitempty"`
-	RecordAdded   bool        `json:"recordAdded,omitempty"`
-	RecordEdited  bool        `json:"recordEdited,omitempty"`
-	CommentAdded  bool        `json:"commentAdded,omitempty"`
-	StatusChanged bool        `json:"statusChanged,omitempty"`
-	FileImported  bool        `json:"fileImported,omitempty"`
+	IncludeSubs   bool        `json:"includeSubs,omitzero"`
+	RecordAdded   bool        `json:"recordAdded,omitzero"`
+	RecordEdited  bool        `json:"recordEdited,omitzero"`
+	CommentAdded  bool        `json:"commentAdded,omitzero"`
+	StatusChanged bool        `json:"statusChanged,omitzero"`
+	FileImported  bool        `json:"fileImported,omitzero"`
 }
 
 // GetGeneralNotifications gets the general notification settings of an app.
@@ -40,7 +39,7 @@ func (c *Client) UpdateGeneralNotifications(ctx context.Context, app int64, sett
 	params := struct {
 		App int64 `json:"app"`
 		GeneralNotifications
-		Revision int64 `json:"revision,omitempty"`
+		Revision int64 `json:"revision,omitzero"`
 	}{app, settings, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/notifications/general.json", params)
 }
@@ -48,13 +47,13 @@ func (c *Client) UpdateGeneralNotifications(ctx context.Context, app int64, sett
 // PerRecordNotifications is the per record notification settings of an app.
 type PerRecordNotifications struct {
 	Notifications []PerRecordNotification `json:"notifications"`
-	Revision      int64                   `json:"revision,string,omitempty"`
+	Revision      int64                   `json:"revision,string,omitzero"`
 }
 
 // PerRecordNotification is a per record notification setting.
 type PerRecordNotification struct {
-	FilterCond string         `json:"filterCond,omitempty"`
-	Title      string         `json:"title,omitempty"`
+	FilterCond string         `json:"filterCond,omitzero"`
+	Title      string         `json:"title,omitzero"`
 	Targets    []TargetEntity `json:"targets"`
 }
 
@@ -65,34 +64,29 @@ func (c *Client) GetPerRecordNotifications(ctx context.Context, req GetAppSettin
 }
 
 // UpdatePerRecordNotifications updates the per record notification settings
-// of an app in the preview environment and returns the new revision. Nil
-// notifications is sent as an empty list. The revision is not checked if
-// revision is zero.
+// of an app in the preview environment and returns the new revision. The
+// revision is not checked if revision is zero.
 func (c *Client) UpdatePerRecordNotifications(ctx context.Context, app int64, notifications []PerRecordNotification, revision int64) (int64, error) {
-	if notifications == nil {
-		notifications = []PerRecordNotification{}
-	}
 	params := struct {
 		App           int64                   `json:"app"`
 		Notifications []PerRecordNotification `json:"notifications"`
-		Revision      int64                   `json:"revision,omitempty"`
+		Revision      int64                   `json:"revision,omitzero"`
 	}{app, notifications, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/notifications/perRecord.json", params)
 }
 
 // ReminderNotifications is the reminder notification settings of an app.
-// Nil Notifications is not sent, but an empty one is sent.
 type ReminderNotifications struct {
 	Notifications []ReminderNotification `json:"notifications,omitzero"`
-	Timezone      string                 `json:"timezone,omitempty"`
-	Revision      int64                  `json:"revision,string,omitempty"`
+	Timezone      string                 `json:"timezone,omitzero"`
+	Revision      int64                  `json:"revision,string,omitzero"`
 }
 
 // ReminderNotification is a reminder notification setting.
 type ReminderNotification struct {
 	Timing     ReminderTiming `json:"timing"`
-	FilterCond string         `json:"filterCond,omitempty"`
-	Title      string         `json:"title,omitempty"`
+	FilterCond string         `json:"filterCond,omitzero"`
+	Title      string         `json:"title,omitzero"`
 	Targets    []TargetEntity `json:"targets"`
 }
 
@@ -101,8 +95,8 @@ type ReminderNotification struct {
 type ReminderTiming struct {
 	Code       string `json:"code"`
 	DaysLater  int    `json:"daysLater,string"`
-	HoursLater *int   `json:"hoursLater,string,omitempty"`
-	Time       string `json:"time,omitempty"`
+	HoursLater *int   `json:"hoursLater,string,omitzero"`
+	Time       string `json:"time,omitzero"`
 }
 
 // GetReminderNotifications gets the reminder notification settings of an app.
@@ -117,7 +111,7 @@ func (c *Client) UpdateReminderNotifications(ctx context.Context, app int64, set
 	params := struct {
 		App int64 `json:"app"`
 		ReminderNotifications
-		Revision int64 `json:"revision,omitempty"`
+		Revision int64 `json:"revision,omitzero"`
 	}{app, settings, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/notifications/reminder.json", params)
 }

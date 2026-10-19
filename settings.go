@@ -6,44 +6,41 @@ import (
 )
 
 // GeneralSettings is the general settings of an app.
-//
-// When updating the settings, the settings not set are not changed. To clear
-// Description, set a pointer to an empty string.
 type GeneralSettings struct {
-	Name                      string           `json:"name,omitempty"`
-	Description               *string          `json:"description,omitempty"`
-	Icon                      *AppIcon         `json:"icon,omitempty"`
-	Theme                     string           `json:"theme,omitempty"`
-	TitleField                *TitleField      `json:"titleField,omitempty"`
-	EnableThumbnails          *bool            `json:"enableThumbnails,omitempty"`
-	EnableBulkDeletion        *bool            `json:"enableBulkDeletion,omitempty"`
-	EnableComments            *bool            `json:"enableComments,omitempty"`
-	EnableDuplicateRecord     *bool            `json:"enableDuplicateRecord,omitempty"`
-	EnableInlineRecordEditing *bool            `json:"enableInlineRecordEditing,omitempty"`
-	NumberPrecision           *NumberPrecision `json:"numberPrecision,omitempty"`
-	FirstMonthOfFiscalYear    string           `json:"firstMonthOfFiscalYear,omitempty"`
-	Revision                  int64            `json:"revision,string,omitempty"`
+	Name                      string           `json:"name,omitzero"`
+	Description               *string          `json:"description,omitzero"`
+	Icon                      *AppIcon         `json:"icon,omitzero"`
+	Theme                     string           `json:"theme,omitzero"`
+	TitleField                *TitleField      `json:"titleField,omitzero"`
+	EnableThumbnails          *bool            `json:"enableThumbnails,omitzero"`
+	EnableBulkDeletion        *bool            `json:"enableBulkDeletion,omitzero"`
+	EnableComments            *bool            `json:"enableComments,omitzero"`
+	EnableDuplicateRecord     *bool            `json:"enableDuplicateRecord,omitzero"`
+	EnableInlineRecordEditing *bool            `json:"enableInlineRecordEditing,omitzero"`
+	NumberPrecision           *NumberPrecision `json:"numberPrecision,omitzero"`
+	FirstMonthOfFiscalYear    string           `json:"firstMonthOfFiscalYear,omitzero"`
+	Revision                  int64            `json:"revision,string,omitzero"`
 }
 
 // AppIcon is the icon of an app. Key is set for preset icons, and File is set
 // for uploaded images.
 type AppIcon struct {
 	Type string    `json:"type"`
-	Key  string    `json:"key,omitempty"`
-	File *FileInfo `json:"file,omitempty"`
+	Key  string    `json:"key,omitzero"`
+	File *FileInfo `json:"file,omitzero"`
 }
 
 // TitleField is the field used as the title of records.
 type TitleField struct {
 	SelectionMode string `json:"selectionMode"`
-	Code          string `json:"code,omitempty"`
+	Code          string `json:"code,omitzero"`
 }
 
 // NumberPrecision is the precision of number and calculated fields.
 type NumberPrecision struct {
-	Digits        string `json:"digits,omitempty"`
-	DecimalPlaces string `json:"decimalPlaces,omitempty"`
-	RoundingMode  string `json:"roundingMode,omitempty"`
+	Digits        string `json:"digits,omitzero"`
+	DecimalPlaces string `json:"decimalPlaces,omitzero"`
+	RoundingMode  string `json:"roundingMode,omitzero"`
 }
 
 // GetGeneralSettings gets the general settings of an app.
@@ -58,7 +55,7 @@ func (c *Client) UpdateGeneralSettings(ctx context.Context, app int64, settings 
 	params := struct {
 		App int64 `json:"app"`
 		GeneralSettings
-		Revision int64 `json:"revision,omitempty"`
+		Revision int64 `json:"revision,omitzero"`
 	}{app, settings, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/settings.json", params)
 }
@@ -66,8 +63,8 @@ func (c *Client) UpdateGeneralSettings(ctx context.Context, app int64, settings 
 // AdminNotes is the notes for the app administrators.
 type AdminNotes struct {
 	Content                        string `json:"content"`
-	IncludeInTemplateAndDuplicates *bool  `json:"includeInTemplateAndDuplicates,omitempty"`
-	Revision                       int64  `json:"revision,string,omitempty"`
+	IncludeInTemplateAndDuplicates *bool  `json:"includeInTemplateAndDuplicates,omitzero"`
+	Revision                       int64  `json:"revision,string,omitzero"`
 }
 
 // GetAdminNotes gets the notes for the administrators of an app. Lang of the
@@ -87,7 +84,7 @@ func (c *Client) UpdateAdminNotes(ctx context.Context, app int64, notes AdminNot
 	params := struct {
 		App int64 `json:"app"`
 		AdminNotes
-		Revision int64 `json:"revision,omitempty"`
+		Revision int64 `json:"revision,omitzero"`
 	}{app, notes, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/adminNotes.json", params)
 }

@@ -2,7 +2,7 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"mime"
@@ -49,7 +49,7 @@ func (c *Client) UploadFile(ctx context.Context, name string, r io.Reader) (stri
 	var result struct {
 		FileKey string `json:"fileKey"`
 	}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	if err := json.UnmarshalRead(res.Body, &result); err != nil {
 		return "", fmt.Errorf("kintone: decode response: %w", err)
 	}
 	return result.FileKey, nil

@@ -2,8 +2,6 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"iter"
 	"strings"
 	"time"
@@ -29,9 +27,9 @@ type Mention struct {
 type GetCommentsRequest struct {
 	App    int64  `json:"app"`
 	Record int64  `json:"record"`
-	Order  string `json:"order,omitempty"`
-	Offset int64  `json:"offset,omitempty"`
-	Limit  int64  `json:"limit,omitempty"`
+	Order  string `json:"order,omitzero"`
+	Offset int64  `json:"offset,omitzero"`
+	Limit  int64  `json:"limit,omitzero"`
 }
 
 // GetCommentsResponse is the response of [Client.GetComments].
@@ -74,7 +72,7 @@ func (c *Client) AllComments(ctx context.Context, req GetCommentsRequest) iter.S
 func (c *Client) AddComment(ctx context.Context, app, record int64, text string, mentions ...Mention) (int64, error) {
 	type comment struct {
 		Text     string    `json:"text"`
-		Mentions []Mention `json:"mentions,omitempty"`
+		Mentions []Mention `json:"mentions,omitzero"`
 	}
 	params := struct {
 		App     int64   `json:"app"`
@@ -82,16 +80,12 @@ func (c *Client) AddComment(ctx context.Context, app, record int64, text string,
 		Comment comment `json:"comment"`
 	}{app, record, comment{text, mentions}}
 	result, err := c.post[struct {
-		ID json.Number `json:"id"`
+		ID number `json:"id"`
 	}](ctx, "record/comment.json", params)
 	if err != nil {
 		return 0, err
 	}
-	id, err := result.ID.Int64()
-	if err != nil {
-		return 0, fmt.Errorf("kintone: decode response: %w", err)
-	}
-	return id, nil
+	return int64(result.ID), nil
 }
 
 // DeleteComment deletes a comment on a record.

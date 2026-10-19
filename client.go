@@ -5,7 +5,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"
@@ -193,7 +194,7 @@ func (c *Client) doHeader[T any](ctx context.Context, method, path string, param
 	var result T
 	var body io.Reader
 	if params != nil {
-		b, err := json.Marshal(params)
+		b, err := json.Marshal(params, json.Deterministic(true))
 		if err != nil {
 			return result, nil, fmt.Errorf("kintone: %w", err)
 		}
@@ -222,7 +223,7 @@ func (c *Client) doHeader[T any](ctx context.Context, method, path string, param
 		_, _ = io.Copy(io.Discard, res.Body)
 		return result, res.Header, nil
 	}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	if err := json.UnmarshalRead(res.Body, &result); err != nil {
 		return result, nil, fmt.Errorf("kintone: decode response: %w", err)
 	}
 	return result, res.Header, nil
@@ -234,7 +235,7 @@ type apiRequest[T any] struct {
 	method string
 	path   string
 	params any
-	decode func(json.RawMessage) (T, error)
+	decode func(jsontext.Value) (T, error)
 }
 
 // call sends the API request and decodes the response.
@@ -244,24 +245,51 @@ func (c *Client) call[T any](ctx context.Context, r apiRequest[T]) (T, error) {
 		_, err := c.do[struct{}](ctx, r.method, r.path, r.params)
 		return result, err
 	}
-	raw, err := c.do[json.RawMessage](ctx, r.method, r.path, r.params)
+	res, err := c.do[jsontext.Value](ctx, r.method, r.path, r.params)
 	if err != nil {
 		return result, err
 	}
-	return r.decode(raw)
+	return r.decode(res)
 }
 
 // decodeWith returns a function to decode the response as W, and convert it
 // with f.
-func decodeWith[W, T any](f func(W) (T, error)) func(json.RawMessage) (T, error) {
-	return func(b json.RawMessage) (T, error) {
+func decodeWith[W, T any](f func(W) (T, error)) func(jsontext.Value) (T, error) {
+	return func(res jsontext.Value) (T, error) {
 		var w W
-		if err := json.Unmarshal(b, &w); err != nil {
+		if err := json.Unmarshal(res, &w); err != nil {
 			var result T
 			return result, fmt.Errorf("kintone: decode response: %w", err)
 		}
 		return f(w)
 	}
+}
+
+// number is an integer encoded as either a JSON number or a JSON string.
+type number int64
+
+// UnmarshalJSON decodes a JSON number or a JSON string of a number.
+func (n *number) UnmarshalJSON(b []byte) error {
+	v := jsontext.Value(b)
+	var s string
+	switch v.Kind() {
+	case jsontext.KindNull:
+		return nil
+	case jsontext.KindString:
+		if err := json.Unmarshal(b, &s); err != nil {
+			return err
+		}
+	case jsontext.KindNumber:
+		s = string(b)
+	default:
+		return fmt.Errorf("cannot unmarshal JSON %s into a number", v.Kind())
+	}
+	x, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return err
+	}
+	*n = number(x)
+	return nil
 }
 
 func decodeRevision(r struct {
@@ -294,7 +322,7 @@ type Error struct {
 	Code       string                 `json:"code"`
 	ID         string                 `json:"id"`
 	Message    string                 `json:"message"`
-	Errors     map[string]ErrorDetail `json:"errors,omitempty"`
+	Errors     map[string]ErrorDetail `json:"errors,omitzero"`
 }
 
 // ErrorDetail is the error detail of a specific field or parameter.
@@ -327,7 +355,7 @@ func parseError(res *http.Response) error {
 	b, err := io.ReadAll(io.LimitReader(res.Body, 1<<20))
 	if err == nil {
 		var bulk struct {
-			Results []json.RawMessage `json:"results"`
+			Results []jsontext.Value `json:"results"`
 		}
 		if json.Unmarshal(b, &bulk) == nil {
 			for i, r := range bulk.Results {

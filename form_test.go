@@ -1,7 +1,7 @@
 package kintone
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"reflect"
 	"testing"

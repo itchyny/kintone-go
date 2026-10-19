@@ -2,7 +2,7 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
 	"fmt"
 	"slices"
 	"strings"
@@ -32,13 +32,13 @@ func (c *Client) GetAPIs(ctx context.Context) (*APIs, error) {
 // APISchema is the schema of an API. Request, Response and Schemas are JSON
 // Schemas.
 type APISchema struct {
-	ID         string                     `json:"id"`
-	BaseURL    string                     `json:"baseUrl"`
-	Path       string                     `json:"path"`
-	HTTPMethod string                     `json:"httpMethod"`
-	Request    json.RawMessage            `json:"request"`
-	Response   json.RawMessage            `json:"response"`
-	Schemas    map[string]json.RawMessage `json:"schemas"`
+	ID         string                    `json:"id"`
+	BaseURL    string                    `json:"baseUrl"`
+	Path       string                    `json:"path"`
+	HTTPMethod string                    `json:"httpMethod"`
+	Request    jsontext.Value            `json:"request"`
+	Response   jsontext.Value            `json:"response"`
+	Schemas    map[string]jsontext.Value `json:"schemas"`
 }
 
 // GetAPISchema gets the schema of the API of the ID, for example

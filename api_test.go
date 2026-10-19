@@ -1,7 +1,7 @@
 package kintone
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
 	"net/http"
 	"reflect"
 	"testing"
@@ -58,9 +58,9 @@ func TestClientGetAPISchema(t *testing.T) {
 		BaseURL:    "https://example.cybozu.com/k/v1/",
 		Path:       "records.json",
 		HTTPMethod: "GET",
-		Request:    json.RawMessage(`{"type": "object", "required": ["app"]}`),
-		Response:   json.RawMessage(`{"type": "object"}`),
-		Schemas:    map[string]json.RawMessage{"SingleLineTextSimpleValue": json.RawMessage(`{"type": "object"}`)},
+		Request:    jsontext.Value(`{"type": "object", "required": ["app"]}`),
+		Response:   jsontext.Value(`{"type": "object"}`),
+		Schemas:    map[string]jsontext.Value{"SingleLineTextSimpleValue": jsontext.Value(`{"type": "object"}`)},
 	}
 	if !reflect.DeepEqual(schema, want) {
 		t.Errorf("schema: got %+v, want %+v", schema, want)

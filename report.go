@@ -2,19 +2,18 @@ package kintone
 
 import "context"
 
-// Report is the setting of a graph of an app. Nil FilterCond is not sent and
-// the setting is not changed, but a pointer to an empty string is sent.
+// Report is the setting of a graph of an app.
 type Report struct {
-	ID             int64               `json:"id,string,omitempty"`
-	Name           string              `json:"name,omitempty"`
+	ID             int64               `json:"id,string,omitzero"`
+	Name           string              `json:"name,omitzero"`
 	ChartType      ChartType           `json:"chartType"`
-	ChartMode      ChartMode           `json:"chartMode,omitempty"`
+	ChartMode      ChartMode           `json:"chartMode,omitzero"`
 	Index          int                 `json:"index,string"`
-	Groups         []ReportGroup       `json:"groups,omitempty"`
-	Aggregations   []ReportAggregation `json:"aggregations,omitempty"`
-	FilterCond     *string             `json:"filterCond,omitempty"`
-	Sorts          []ReportSort        `json:"sorts,omitempty"`
-	PeriodicReport *PeriodicReport     `json:"periodicReport,omitempty"`
+	Groups         []ReportGroup       `json:"groups,omitzero"`
+	Aggregations   []ReportAggregation `json:"aggregations,omitzero"`
+	FilterCond     *string             `json:"filterCond,omitzero"`
+	Sorts          []ReportSort        `json:"sorts,omitzero"`
+	PeriodicReport *PeriodicReport     `json:"periodicReport,omitzero"`
 }
 
 // ChartType is the type of a graph.
@@ -47,13 +46,13 @@ const (
 // field.
 type ReportGroup struct {
 	Code string `json:"code"`
-	Per  string `json:"per,omitempty"`
+	Per  string `json:"per,omitzero"`
 }
 
 // ReportAggregation is an aggregation of a graph. Code is empty for COUNT.
 type ReportAggregation struct {
 	Type AggregationType `json:"type"`
-	Code string          `json:"code,omitempty"`
+	Code string          `json:"code,omitzero"`
 }
 
 // AggregationType is the type of an aggregation.
@@ -76,19 +75,19 @@ type ReportSort struct {
 
 // PeriodicReport is the setting of the periodic report of a graph.
 type PeriodicReport struct {
-	Active *bool        `json:"active,omitempty"`
+	Active *bool        `json:"active,omitzero"`
 	Period ReportPeriod `json:"period"`
 }
 
 // ReportPeriod is the period of a periodic report.
 type ReportPeriod struct {
 	Every      string `json:"every"`
-	Month      string `json:"month,omitempty"`
-	Time       string `json:"time,omitempty"`
-	Pattern    string `json:"pattern,omitempty"`
-	DayOfMonth string `json:"dayOfMonth,omitempty"`
-	DayOfWeek  string `json:"dayOfWeek,omitempty"`
-	Minute     string `json:"minute,omitempty"`
+	Month      string `json:"month,omitzero"`
+	Time       string `json:"time,omitzero"`
+	Pattern    string `json:"pattern,omitzero"`
+	DayOfMonth string `json:"dayOfMonth,omitzero"`
+	DayOfWeek  string `json:"dayOfWeek,omitzero"`
+	Minute     string `json:"minute,omitzero"`
 }
 
 // Reports is the graphs of an app, keyed by the graph name.
@@ -121,7 +120,7 @@ func (c *Client) UpdateReports(ctx context.Context, app int64, reports map[strin
 	params := struct {
 		App      int64             `json:"app"`
 		Reports  map[string]Report `json:"reports"`
-		Revision int64             `json:"revision,omitempty"`
+		Revision int64             `json:"revision,omitzero"`
 	}{app, reports, revision}
 	result, err := c.put[UpdatedReports](ctx, "preview/app/reports.json", params)
 	if err != nil {

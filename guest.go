@@ -8,15 +8,15 @@ type Guest struct {
 	Code             string `json:"code"`
 	Password         string `json:"password"`
 	Timezone         string `json:"timezone"`
-	Locale           string `json:"locale,omitempty"`
-	Image            string `json:"image,omitempty"`
+	Locale           string `json:"locale,omitzero"`
+	Image            string `json:"image,omitzero"`
 	Name             string `json:"name"`
-	SurNameReading   string `json:"surNameReading,omitempty"`
-	GivenNameReading string `json:"givenNameReading,omitempty"`
-	Company          string `json:"company,omitempty"`
-	Division         string `json:"division,omitempty"`
-	Phone            string `json:"phone,omitempty"`
-	Callto           string `json:"callto,omitempty"`
+	SurNameReading   string `json:"surNameReading,omitzero"`
+	GivenNameReading string `json:"givenNameReading,omitzero"`
+	Company          string `json:"company,omitzero"`
+	Division         string `json:"division,omitzero"`
+	Phone            string `json:"phone,omitzero"`
+	Callto           string `json:"callto,omitzero"`
 }
 
 // AddGuests adds guest users. The guest space of the client is not used.

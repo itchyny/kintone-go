@@ -8,17 +8,17 @@ import (
 // ProcessManagement is the process management settings of an app.
 // States and Actions are nil if the process management has never been set.
 type ProcessManagement struct {
-	Enable   *bool                   `json:"enable,omitempty"`
-	States   map[string]ProcessState `json:"states,omitempty"`
-	Actions  []ProcessAction         `json:"actions,omitempty"`
-	Revision int64                   `json:"revision,string,omitempty"`
+	Enable   *bool                   `json:"enable,omitzero"`
+	States   map[string]ProcessState `json:"states,omitzero"`
+	Actions  []ProcessAction         `json:"actions,omitzero"`
+	Revision int64                   `json:"revision,string,omitzero"`
 }
 
 // ProcessState is a status of the process management.
 type ProcessState struct {
-	Name     string           `json:"name,omitempty"`
+	Name     string           `json:"name,omitzero"`
 	Index    int              `json:"index,string"`
-	Assignee *ProcessAssignee `json:"assignee,omitempty"`
+	Assignee *ProcessAssignee `json:"assignee,omitzero"`
 }
 
 // ProcessAssignee is the assignees of a status.
@@ -31,7 +31,7 @@ type ProcessAssignee struct {
 // used for the assignees, the executable users and the notification targets.
 type TargetEntity struct {
 	Entity      FieldEntity `json:"entity"`
-	IncludeSubs bool        `json:"includeSubs,omitempty"`
+	IncludeSubs bool        `json:"includeSubs,omitzero"`
 }
 
 // ProcessAction is an action of the process management. ExecutableUser is the
@@ -40,9 +40,9 @@ type ProcessAction struct {
 	Name           string          `json:"name"`
 	From           string          `json:"from"`
 	To             string          `json:"to"`
-	FilterCond     string          `json:"filterCond,omitempty"`
-	Type           string          `json:"type,omitempty"`
-	ExecutableUser *ExecutableUser `json:"executableUser,omitempty"`
+	FilterCond     string          `json:"filterCond,omitzero"`
+	Type           string          `json:"type,omitzero"`
+	ExecutableUser *ExecutableUser `json:"executableUser,omitzero"`
 }
 
 // ExecutableUser is the users who can execute an action.
@@ -62,7 +62,7 @@ func (c *Client) UpdateProcessManagement(ctx context.Context, app int64, setting
 	params := struct {
 		App int64 `json:"app"`
 		ProcessManagement
-		Revision int64 `json:"revision,omitempty"`
+		Revision int64 `json:"revision,omitzero"`
 	}{app, settings, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/status.json", params)
 }

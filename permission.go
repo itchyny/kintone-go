@@ -43,20 +43,20 @@ func (c *Client) EvaluateRecordPermissions(ctx context.Context, app int64, ids [
 // AppPermissions is the app permissions of an app, in order of priority.
 type AppPermissions struct {
 	Rights   []AppRight `json:"rights"`
-	Revision int64      `json:"revision,string,omitempty"`
+	Revision int64      `json:"revision,string,omitzero"`
 }
 
 // AppRight is an app permission of an entity.
 type AppRight struct {
 	Entity           FieldEntity `json:"entity"`
-	IncludeSubs      bool        `json:"includeSubs,omitempty"`
-	AppEditable      bool        `json:"appEditable,omitempty"`
-	RecordViewable   bool        `json:"recordViewable,omitempty"`
-	RecordAddable    bool        `json:"recordAddable,omitempty"`
-	RecordEditable   bool        `json:"recordEditable,omitempty"`
-	RecordDeletable  bool        `json:"recordDeletable,omitempty"`
-	RecordImportable bool        `json:"recordImportable,omitempty"`
-	RecordExportable bool        `json:"recordExportable,omitempty"`
+	IncludeSubs      bool        `json:"includeSubs,omitzero"`
+	AppEditable      bool        `json:"appEditable,omitzero"`
+	RecordViewable   bool        `json:"recordViewable,omitzero"`
+	RecordAddable    bool        `json:"recordAddable,omitzero"`
+	RecordEditable   bool        `json:"recordEditable,omitzero"`
+	RecordDeletable  bool        `json:"recordDeletable,omitzero"`
+	RecordImportable bool        `json:"recordImportable,omitzero"`
+	RecordExportable bool        `json:"recordExportable,omitzero"`
 }
 
 // GetAppPermissions gets the app permissions of an app. Lang of the request is
@@ -75,7 +75,7 @@ func (c *Client) UpdateAppPermissions(ctx context.Context, app int64, rights []A
 	params := struct {
 		App      int64      `json:"app"`
 		Rights   []AppRight `json:"rights"`
-		Revision int64      `json:"revision,omitempty"`
+		Revision int64      `json:"revision,omitzero"`
 	}{app, rights, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "app/acl.json", params)
 }
@@ -83,22 +83,22 @@ func (c *Client) UpdateAppPermissions(ctx context.Context, app int64, rights []A
 // RecordPermissions is the record permissions of an app, in order of priority.
 type RecordPermissions struct {
 	Rights   []RecordRight `json:"rights"`
-	Revision int64         `json:"revision,string,omitempty"`
+	Revision int64         `json:"revision,string,omitzero"`
 }
 
 // RecordRight is a record permission of the records matching FilterCond.
 type RecordRight struct {
-	FilterCond string              `json:"filterCond,omitempty"`
+	FilterCond string              `json:"filterCond,omitzero"`
 	Entities   []RecordRightEntity `json:"entities"`
 }
 
 // RecordRightEntity is a record permission of an entity.
 type RecordRightEntity struct {
 	Entity      FieldEntity `json:"entity"`
-	Viewable    bool        `json:"viewable,omitempty"`
-	Editable    bool        `json:"editable,omitempty"`
-	Deletable   bool        `json:"deletable,omitempty"`
-	IncludeSubs bool        `json:"includeSubs,omitempty"`
+	Viewable    bool        `json:"viewable,omitzero"`
+	Editable    bool        `json:"editable,omitzero"`
+	Deletable   bool        `json:"deletable,omitzero"`
+	IncludeSubs bool        `json:"includeSubs,omitzero"`
 }
 
 // GetRecordPermissions gets the record permissions of an app.
@@ -113,7 +113,7 @@ func (c *Client) UpdateRecordPermissions(ctx context.Context, app int64, rights 
 	params := struct {
 		App      int64         `json:"app"`
 		Rights   []RecordRight `json:"rights"`
-		Revision int64         `json:"revision,omitempty"`
+		Revision int64         `json:"revision,omitzero"`
 	}{app, rights, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "record/acl.json", params)
 }
@@ -121,7 +121,7 @@ func (c *Client) UpdateRecordPermissions(ctx context.Context, app int64, rights 
 // FieldPermissions is the field permissions of an app.
 type FieldPermissions struct {
 	Rights   []FieldRight `json:"rights"`
-	Revision int64        `json:"revision,string,omitempty"`
+	Revision int64        `json:"revision,string,omitzero"`
 }
 
 // FieldRight is the permissions of the field of Code, in order of priority.
@@ -134,7 +134,7 @@ type FieldRight struct {
 type FieldRightEntity struct {
 	Accessibility string      `json:"accessibility"`
 	Entity        FieldEntity `json:"entity"`
-	IncludeSubs   bool        `json:"includeSubs,omitempty"`
+	IncludeSubs   bool        `json:"includeSubs,omitzero"`
 }
 
 // GetFieldPermissions gets the field permissions of an app. Lang of the
@@ -153,7 +153,7 @@ func (c *Client) UpdateFieldPermissions(ctx context.Context, app int64, rights [
 	params := struct {
 		App      int64        `json:"app"`
 		Rights   []FieldRight `json:"rights"`
-		Revision int64        `json:"revision,omitempty"`
+		Revision int64        `json:"revision,omitzero"`
 	}{app, rights, revision}
 	return c.updateAppSettings(ctx, http.MethodPut, "field/acl.json", params)
 }

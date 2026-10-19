@@ -1,7 +1,8 @@
 package kintone
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"reflect"
 	"testing"
 )
@@ -182,11 +183,11 @@ func TestRecordMarshalJSON(t *testing.T) {
 		]
 	}
 }`
-	got, err := json.MarshalIndent(record, "", "\t")
+	got, err := json.Marshal(record, json.Deterministic(true), jsontext.WithIndent("\t"))
 	if err != nil {
-		t.Fatalf("json.MarshalIndent returned error: %v", err)
+		t.Fatalf("json.Marshal returned error: %v", err)
 	}
 	if string(got) != want {
-		t.Errorf("json.MarshalIndent:\n got: %s\nwant: %s", got, want)
+		t.Errorf("json.Marshal:\n got: %s\nwant: %s", got, want)
 	}
 }

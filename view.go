@@ -5,22 +5,21 @@ import "context"
 // View is the setting of a view of an app.
 //
 // Fields is used by list views, Date and Title by calendar views, and HTML,
-// Pager and Device by custom views. Nil FilterCond or Sort is not sent and
-// the setting is not changed, but a pointer to an empty string is sent.
+// Pager and Device by custom views.
 type View struct {
-	ID          int64    `json:"id,string,omitempty"`
-	Name        string   `json:"name,omitempty"`
+	ID          int64    `json:"id,string,omitzero"`
+	Name        string   `json:"name,omitzero"`
 	Type        ViewType `json:"type"`
-	BuiltinType string   `json:"builtinType,omitempty"`
+	BuiltinType string   `json:"builtinType,omitzero"`
 	Index       int      `json:"index,string"`
-	Fields      []string `json:"fields,omitempty"`
-	Date        string   `json:"date,omitempty"`
-	Title       string   `json:"title,omitempty"`
-	HTML        string   `json:"html,omitempty"`
-	Pager       *bool    `json:"pager,omitempty"`
-	Device      string   `json:"device,omitempty"`
-	FilterCond  *string  `json:"filterCond,omitempty"`
-	Sort        *string  `json:"sort,omitempty"`
+	Fields      []string `json:"fields,omitzero"`
+	Date        string   `json:"date,omitzero"`
+	Title       string   `json:"title,omitzero"`
+	HTML        string   `json:"html,omitzero"`
+	Pager       *bool    `json:"pager,omitzero"`
+	Device      string   `json:"device,omitzero"`
+	FilterCond  *string  `json:"filterCond,omitzero"`
+	Sort        *string  `json:"sort,omitzero"`
 }
 
 // ViewType is the type of a view.
@@ -63,7 +62,7 @@ func (c *Client) UpdateViews(ctx context.Context, app int64, views map[string]Vi
 	params := struct {
 		App      int64           `json:"app"`
 		Views    map[string]View `json:"views"`
-		Revision int64           `json:"revision,omitempty"`
+		Revision int64           `json:"revision,omitzero"`
 	}{app, views, revision}
 	result, err := c.put[UpdatedViews](ctx, "preview/app/views.json", params)
 	if err != nil {

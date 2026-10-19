@@ -3,23 +3,22 @@ package kintone
 import "context"
 
 // AppAction is the setting of an action of an app, which copies a record to
-// DestApp. Nil Mappings, Entities or FilterCond is not sent and the setting is
-// not changed, but an empty one is sent.
+// DestApp.
 type AppAction struct {
-	ID         int64           `json:"id,string,omitempty"`
-	Name       string          `json:"name,omitempty"`
+	ID         int64           `json:"id,string,omitzero"`
+	Name       string          `json:"name,omitzero"`
 	Index      int             `json:"index,string"`
-	DestApp    *RelatedApp     `json:"destApp,omitempty"`
+	DestApp    *RelatedApp     `json:"destApp,omitzero"`
 	Mappings   []ActionMapping `json:"mappings,omitzero"`
 	Entities   []FieldEntity   `json:"entities,omitzero"`
-	FilterCond *string         `json:"filterCond,omitempty"`
+	FilterCond *string         `json:"filterCond,omitzero"`
 }
 
 // ActionMapping is a mapping from the source to the field of the destination
 // app. SrcField is set if SrcType is FIELD.
 type ActionMapping struct {
 	SrcType   string `json:"srcType"`
-	SrcField  string `json:"srcField,omitempty"`
+	SrcField  string `json:"srcField,omitzero"`
 	DestField string `json:"destField"`
 }
 
@@ -53,7 +52,7 @@ func (c *Client) UpdateAppActions(ctx context.Context, app int64, actions map[st
 	params := struct {
 		App      int64                `json:"app"`
 		Actions  map[string]AppAction `json:"actions"`
-		Revision int64                `json:"revision,omitempty"`
+		Revision int64                `json:"revision,omitzero"`
 	}{app, actions, revision}
 	result, err := c.put[UpdatedAppActions](ctx, "preview/app/actions.json", params)
 	if err != nil {

@@ -46,7 +46,7 @@ func TestBulkRequestSend(t *testing.T) {
 			{"id": 2, "record": {"title": {"value": "e"}}}
 		]}},
 		{"method": "PUT", "api": "/k/v1/records.json", "payload": {"app": 2, "records": [
-			{"updateKey": {"field": "code", "value": "A"}}
+			{"updateKey": {"field": "code", "value": "A"}, "record": {}}
 		], "upsert": true}},
 		{"method": "DELETE", "api": "/k/v1/records.json", "payload": {"app": 1, "ids": [5]}},
 		{"method": "PUT", "api": "/k/v1/record/status.json", "payload": {"app": 1, "id": 10, "action": "Submit"}},
@@ -104,7 +104,7 @@ func TestBulkRequestSendPath(t *testing.T) {
 				t.Fatalf("Send returned error: %v", err)
 			}
 			assertRequest(t, got, http.MethodPost, tc.wantPath,
-				`{"requests": [{"method": "POST", "api": "`+tc.wantAPI+`", "payload": {"app": 1}}]}`)
+				`{"requests": [{"method": "POST", "api": "`+tc.wantAPI+`", "payload": {"app": 1, "record": {}}}]}`)
 		})
 	}
 }

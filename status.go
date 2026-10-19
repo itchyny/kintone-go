@@ -11,19 +11,16 @@ import (
 type AssigneesUpdate struct {
 	ID        int64    `json:"id"`
 	Assignees []string `json:"assignees"`
-	Revision  int64    `json:"revision,omitempty"`
+	Revision  int64    `json:"revision,omitzero"`
 }
 
 // UpdateAssignees updates the assignees of a record and returns the new
-// revision. Nil Assignees is sent as an empty list.
+// revision.
 func (c *Client) UpdateAssignees(ctx context.Context, app int64, update AssigneesUpdate) (int64, error) {
 	return c.call(ctx, updateAssigneesRequest(app, update))
 }
 
 func updateAssigneesRequest(app int64, update AssigneesUpdate) apiRequest[int64] {
-	if update.Assignees == nil {
-		update.Assignees = []string{}
-	}
 	params := struct {
 		App int64 `json:"app"`
 		AssigneesUpdate
@@ -37,8 +34,8 @@ func updateAssigneesRequest(app int64, update AssigneesUpdate) apiRequest[int64]
 type StatusUpdate struct {
 	ID       int64  `json:"id"`
 	Action   string `json:"action"`
-	Assignee string `json:"assignee,omitempty"`
-	Revision int64  `json:"revision,omitempty"`
+	Assignee string `json:"assignee,omitzero"`
+	Revision int64  `json:"revision,omitzero"`
 }
 
 // UpdateStatus updates the status of a record and returns the new revision.

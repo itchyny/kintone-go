@@ -2,7 +2,7 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
 	"fmt"
 	"net/http"
 	"slices"
@@ -21,7 +21,7 @@ type bulkItem struct {
 	method string
 	api    string
 	params any
-	set    func(json.RawMessage) error
+	set    func(jsontext.Value) error
 }
 
 // BulkResult is the result of a request in a bulk request.
@@ -46,11 +46,11 @@ func (b *BulkRequest) add[T any](r apiRequest[T]) *BulkResult[T] {
 		method: r.method,
 		api:    b.client.apiPath(r.path),
 		params: r.params,
-		set: func(raw json.RawMessage) error {
+		set: func(res jsontext.Value) error {
 			if r.decode == nil {
 				return nil
 			}
-			value, err := r.decode(raw)
+			value, err := r.decode(res)
 			if err != nil {
 				return err
 			}
@@ -126,7 +126,7 @@ func (b *BulkRequest) Send(ctx context.Context) error {
 		Requests []request `json:"requests"`
 	}{requests}
 	result, err := b.client.do[struct {
-		Results []json.RawMessage `json:"results"`
+		Results []jsontext.Value `json:"results"`
 	}](ctx, http.MethodPost, "bulkRequest.json", params)
 	if err != nil {
 		return err

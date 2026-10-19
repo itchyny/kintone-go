@@ -2,8 +2,7 @@ package kintone
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"encoding/json/v2"
 	"time"
 )
 
@@ -52,19 +51,18 @@ func (c *Client) GetSpace(ctx context.Context, id int64) (*Space, error) {
 }
 
 // UpdateSpaceRequest is the request of [Client.UpdateSpace].
-// The settings not set are not changed.
 type UpdateSpaceRequest struct {
 	ID                  int64             `json:"id"`
-	Name                string            `json:"name,omitempty"`
-	IsPrivate           *bool             `json:"isPrivate,omitempty"`
-	FixedMember         *bool             `json:"fixedMember,omitempty"`
-	UseMultiThread      *bool             `json:"useMultiThread,omitempty"`
-	ShowAnnouncement    *bool             `json:"showAnnouncement,omitempty"`
-	ShowThreadList      *bool             `json:"showThreadList,omitempty"`
-	ShowAppList         *bool             `json:"showAppList,omitempty"`
-	ShowMemberList      *bool             `json:"showMemberList,omitempty"`
-	ShowRelatedLinkList *bool             `json:"showRelatedLinkList,omitempty"`
-	Permissions         *SpacePermissions `json:"permissions,omitempty"`
+	Name                string            `json:"name,omitzero"`
+	IsPrivate           *bool             `json:"isPrivate,omitzero"`
+	FixedMember         *bool             `json:"fixedMember,omitzero"`
+	UseMultiThread      *bool             `json:"useMultiThread,omitzero"`
+	ShowAnnouncement    *bool             `json:"showAnnouncement,omitzero"`
+	ShowThreadList      *bool             `json:"showThreadList,omitzero"`
+	ShowAppList         *bool             `json:"showAppList,omitzero"`
+	ShowMemberList      *bool             `json:"showMemberList,omitzero"`
+	ShowRelatedLinkList *bool             `json:"showRelatedLinkList,omitzero"`
+	Permissions         *SpacePermissions `json:"permissions,omitzero"`
 }
 
 // UpdateSpace updates the settings of a space.
@@ -100,31 +98,27 @@ func (c *Client) AddSpace(ctx context.Context, name string) (int64, error) {
 		Name string `json:"name"`
 	}{name}
 	result, err := c.withoutGuestSpace().post[struct {
-		ID json.Number `json:"id"`
+		ID number `json:"id"`
 	}](ctx, "space.json", params)
 	if err != nil {
 		return 0, err
 	}
-	id, err := result.ID.Int64()
-	if err != nil {
-		return 0, fmt.Errorf("kintone: decode response: %w", err)
-	}
-	return id, nil
+	return int64(result.ID), nil
 }
 
 // SpaceMember is a member of a space. IsImplicit is true for the users who
 // belong to the space through a group or a department, and is not sent.
 type SpaceMember struct {
 	Entity      FieldEntity `json:"entity"`
-	IsAdmin     bool        `json:"isAdmin,omitempty"`
-	IsImplicit  bool        `json:"isImplicit,omitempty"`
-	IncludeSubs bool        `json:"includeSubs,omitempty"`
+	IsAdmin     bool        `json:"isAdmin,omitzero"`
+	IsImplicit  bool        `json:"isImplicit,omitzero"`
+	IncludeSubs bool        `json:"includeSubs,omitzero"`
 }
 
 type spaceMemberParam struct {
 	Entity      FieldEntity `json:"entity"`
-	IsAdmin     bool        `json:"isAdmin,omitempty"`
-	IncludeSubs bool        `json:"includeSubs,omitempty"`
+	IsAdmin     bool        `json:"isAdmin,omitzero"`
+	IncludeSubs bool        `json:"includeSubs,omitzero"`
 }
 
 func spaceMemberParams(members []SpaceMember) []spaceMemberParam {
@@ -153,21 +147,17 @@ func (c *Client) AddSpaceFromTemplate(ctx context.Context, req AddSpaceFromTempl
 		ID          int64              `json:"id"`
 		Name        string             `json:"name"`
 		Members     []spaceMemberParam `json:"members"`
-		IsPrivate   bool               `json:"isPrivate,omitempty"`
-		IsGuest     bool               `json:"isGuest,omitempty"`
-		FixedMember bool               `json:"fixedMember,omitempty"`
+		IsPrivate   bool               `json:"isPrivate,omitzero"`
+		IsGuest     bool               `json:"isGuest,omitzero"`
+		FixedMember bool               `json:"fixedMember,omitzero"`
 	}{req.ID, req.Name, spaceMemberParams(req.Members), req.IsPrivate, req.IsGuest, req.FixedMember}
 	result, err := c.withoutGuestSpace().post[struct {
-		ID json.Number `json:"id"`
+		ID number `json:"id"`
 	}](ctx, "template/space.json", params)
 	if err != nil {
 		return 0, err
 	}
-	id, err := result.ID.Int64()
-	if err != nil {
-		return 0, fmt.Errorf("kintone: decode response: %w", err)
-	}
-	return id, nil
+	return int64(result.ID), nil
 }
 
 // SpaceStatistics is the usage of a space.
@@ -190,33 +180,22 @@ func (s *SpaceStatistics) UnmarshalJSON(b []byte) error {
 	type statistics SpaceStatistics
 	var v struct {
 		statistics
-		ID                 json.Number `json:"id"`
-		AdministratorCount json.Number `json:"administratorCount"`
-		MemberCount        json.Number `json:"memberCount"`
+		ID                 number `json:"id"`
+		AdministratorCount number `json:"administratorCount"`
+		MemberCount        number `json:"memberCount"`
 	}
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 	*s = SpaceStatistics(v.statistics)
-	for _, f := range []struct {
-		n json.Number
-		p *int64
-	}{{v.ID, &s.ID}, {v.AdministratorCount, &s.AdministratorCount}, {v.MemberCount, &s.MemberCount}} {
-		if f.n == "" {
-			continue
-		}
-		var err error
-		if *f.p, err = f.n.Int64(); err != nil {
-			return err
-		}
-	}
+	s.ID, s.AdministratorCount, s.MemberCount = int64(v.ID), int64(v.AdministratorCount), int64(v.MemberCount)
 	return nil
 }
 
 // GetSpacesStatisticsRequest is the request of [Client.GetSpacesStatistics].
 type GetSpacesStatisticsRequest struct {
-	Offset int64 `json:"offset,omitempty"`
-	Limit  int64 `json:"limit,omitempty"`
+	Offset int64 `json:"offset,omitzero"`
+	Limit  int64 `json:"limit,omitzero"`
 }
 
 // GetSpacesStatistics gets the usage of spaces. The guest space of the client

@@ -14,9 +14,9 @@ import (
 // Use [Quote] to quote string values in Query.
 type CreateCursorRequest struct {
 	App    int64    `json:"app"`
-	Fields []string `json:"fields,omitempty"`
-	Query  string   `json:"query,omitempty"`
-	Size   int64    `json:"size,omitempty"`
+	Fields []string `json:"fields,omitzero"`
+	Query  string   `json:"query,omitzero"`
+	Size   int64    `json:"size,omitzero"`
 }
 
 // Cursor is a cursor to get records. Warning is the value of the

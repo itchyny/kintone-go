@@ -31,9 +31,9 @@ func (c *Client) GetRecord(ctx context.Context, app, id int64) (Record, error) {
 // Use [Quote] to quote string values in Query.
 type GetRecordsRequest struct {
 	App        int64    `json:"app"`
-	Fields     []string `json:"fields,omitempty"`
-	Query      string   `json:"query,omitempty"`
-	TotalCount bool     `json:"totalCount,omitempty"`
+	Fields     []string `json:"fields,omitzero"`
+	Query      string   `json:"query,omitzero"`
+	TotalCount bool     `json:"totalCount,omitzero"`
 }
 
 // GetRecordsResponse is the response of [Client.GetRecords].
@@ -98,7 +98,7 @@ func (c *Client) AddRecord(ctx context.Context, app int64, record Record) (Recor
 func addRecordRequest(app int64, record Record) apiRequest[RecordRevision] {
 	params := struct {
 		App    int64  `json:"app"`
-		Record Record `json:"record,omitempty"`
+		Record Record `json:"record,omitzero"`
 	}{app, record}
 	return apiRequest[RecordRevision]{http.MethodPost, "record.json", params,
 		decodeWith(func(r RecordRevision) (RecordRevision, error) { return r, nil })}
@@ -139,10 +139,10 @@ func decodeRecordRevisions(r struct {
 // RecordUpdate is an update of a record, specified by either ID or UpdateKey.
 // The revision is not checked if Revision is zero.
 type RecordUpdate struct {
-	ID        int64      `json:"id,omitempty"`
-	UpdateKey *UpdateKey `json:"updateKey,omitempty"`
-	Record    Record     `json:"record,omitempty"`
-	Revision  int64      `json:"revision,omitempty"`
+	ID        int64      `json:"id,omitzero"`
+	UpdateKey *UpdateKey `json:"updateKey,omitzero"`
+	Record    Record     `json:"record,omitzero"`
+	Revision  int64      `json:"revision,omitzero"`
 }
 
 // UpdateKey specifies a record by the value of a field.
@@ -196,7 +196,7 @@ func updateRecordsRequest(app int64, updates []RecordUpdate, upsert bool) apiReq
 	params := struct {
 		App     int64          `json:"app"`
 		Records []RecordUpdate `json:"records"`
-		Upsert  bool           `json:"upsert,omitempty"`
+		Upsert  bool           `json:"upsert,omitzero"`
 	}{app, updates, upsert}
 	return apiRequest[[]UpdatedRecord]{http.MethodPut, "records.json", params,
 		decodeWith(func(r struct {
@@ -217,7 +217,7 @@ func deleteRecordsRequest(app int64, ids, revisions []int64) apiRequest[struct{}
 	params := struct {
 		App       int64   `json:"app"`
 		IDs       []int64 `json:"ids"`
-		Revisions []int64 `json:"revisions,omitempty"`
+		Revisions []int64 `json:"revisions,omitzero"`
 	}{app, ids, revisions}
 	return apiRequest[struct{}]{http.MethodDelete, "records.json", params, nil}
 }

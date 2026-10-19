@@ -59,19 +59,19 @@ func TestClientGetViews(t *testing.T) {
 				Views: map[string]View{
 					"All": {
 						ID: 10, Name: "All", Type: ViewTypeList, Index: 0,
-						Fields: []string{"$id", "title"}, Sort: "$id desc",
+						Fields: []string{"$id", "title"}, FilterCond: new(""), Sort: new("$id desc"),
 					},
 					"Calendar": {
 						ID: 11, Name: "Calendar", Type: ViewTypeCalendar, Index: 1,
-						Date: "due", Title: "title",
+						Date: "due", Title: "title", FilterCond: new(""), Sort: new(""),
 					},
 					"Custom": {
 						ID: 12, Name: "Custom", Type: ViewTypeCustom, Index: 2,
-						HTML: "<div></div>", Pager: new(false), Device: "ANY",
+						HTML: "<div></div>", Pager: new(false), Device: "ANY", FilterCond: new(""), Sort: new(""),
 					},
 					"(Assigned to me)": {
 						ID: 13, Name: "(Assigned to me)", Type: ViewTypeList, BuiltinType: "ASSIGNEE", Index: 3,
-						Fields: []string{"title"},
+						Fields: []string{"title"}, FilterCond: new(""), Sort: new(""),
 					},
 				},
 				Revision: 4,
@@ -90,8 +90,8 @@ func TestClientUpdateViews(t *testing.T) {
 	}`)
 	c := newTestClient(t, ts)
 	res, err := c.UpdateViews(t.Context(), 1, map[string]View{
-		"All":  {Name: "All", Type: ViewTypeList, Index: 0, Fields: []string{"$id", "title"}},
-		"Open": {Name: "Open", Type: ViewTypeCustom, Index: 1, HTML: "<p></p>", Pager: new(false), FilterCond: `status in ("Open")`},
+		"All":  {Name: "All", Type: ViewTypeList, Index: 0, Fields: []string{"$id", "title"}, FilterCond: new("")},
+		"Open": {Name: "Open", Type: ViewTypeCustom, Index: 1, HTML: "<p></p>", Pager: new(false), FilterCond: new(`status in ("Open")`)},
 	}, 4)
 	if err != nil {
 		t.Fatalf("UpdateViews returned error: %v", err)
@@ -99,7 +99,7 @@ func TestClientUpdateViews(t *testing.T) {
 	assertRequest(t, got, http.MethodPut, "/k/v1/preview/app/views.json", `{
 		"app": 1,
 		"views": {
-			"All": {"name": "All", "type": "LIST", "index": "0", "fields": ["$id", "title"]},
+			"All": {"name": "All", "type": "LIST", "index": "0", "fields": ["$id", "title"], "filterCond": ""},
 			"Open": {
 				"name": "Open", "type": "CUSTOM", "index": "1",
 				"html": "<p></p>", "pager": false, "filterCond": "status in (\"Open\")"

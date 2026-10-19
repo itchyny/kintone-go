@@ -4,7 +4,8 @@ import "context"
 
 // AppAction is the setting of an action of an app, which copies a record to
 // DestApp. DestApp is nil if the user has no permission on the app.
-// Nil Mappings or Entities is not sent, but an empty one is sent.
+// Nil Mappings, Entities or FilterCond is not sent and the setting is not
+// changed, but an empty one is sent.
 type AppAction struct {
 	ID         int64           `json:"id,string,omitempty"`
 	Name       string          `json:"name,omitempty"`
@@ -12,7 +13,7 @@ type AppAction struct {
 	DestApp    *RelatedApp     `json:"destApp,omitempty"`
 	Mappings   []ActionMapping `json:"mappings,omitzero"`
 	Entities   []FieldEntity   `json:"entities,omitzero"`
-	FilterCond string          `json:"filterCond,omitempty"`
+	FilterCond *string         `json:"filterCond,omitempty"`
 }
 
 // ActionMapping is a mapping from the source to the field of the destination

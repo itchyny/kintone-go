@@ -51,7 +51,7 @@ func TestClientGetGeneralSettings(t *testing.T) {
 			assertRequest(t, got, http.MethodGet, tc.wantPath, tc.wantBody)
 			want := &GeneralSettings{
 				Name:        "Deals",
-				Description: "<b>Deals</b>",
+				Description: new("<b>Deals</b>"),
 				Icon: &AppIcon{
 					Type: "FILE",
 					File: &FileInfo{ContentType: "image/png", FileKey: "key1", Name: "icon.png", Size: 1024},
@@ -97,6 +97,11 @@ func TestClientUpdateGeneralSettings(t *testing.T) {
 				"enableComments": false,
 				"revision": 3
 			}`,
+		},
+		{
+			name:     "clear description",
+			settings: GeneralSettings{Description: new("")},
+			wantBody: `{"app": 1, "description": ""}`,
 		},
 		{
 			name:     "revision of the settings is not used",

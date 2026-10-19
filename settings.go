@@ -7,10 +7,11 @@ import (
 
 // GeneralSettings is the general settings of an app.
 //
-// When updating the settings, the settings not set are not changed.
+// When updating the settings, the settings not set are not changed. To clear
+// Description, set a pointer to an empty string.
 type GeneralSettings struct {
 	Name                      string           `json:"name,omitempty"`
-	Description               string           `json:"description,omitempty"`
+	Description               *string          `json:"description,omitempty"`
 	Icon                      *AppIcon         `json:"icon,omitempty"`
 	Theme                     string           `json:"theme,omitempty"`
 	TitleField                *TitleField      `json:"titleField,omitempty"`

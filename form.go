@@ -8,7 +8,8 @@ import (
 
 // FieldProperty is the setting of a field in the form.
 //
-// When updating fields, the properties not set are not changed.
+// When updating fields, the properties not set are not changed. To clear a
+// property, set a pointer to an empty string or an empty slice.
 type FieldProperty struct {
 	Type            FieldType                `json:"type"`
 	Code            string                   `json:"code,omitempty"`
@@ -16,24 +17,24 @@ type FieldProperty struct {
 	NoLabel         *bool                    `json:"noLabel,omitempty"`
 	Required        *bool                    `json:"required,omitempty"`
 	Unique          *bool                    `json:"unique,omitempty"`
-	MaxValue        string                   `json:"maxValue,omitempty"`
-	MinValue        string                   `json:"minValue,omitempty"`
-	MaxLength       string                   `json:"maxLength,omitempty"`
-	MinLength       string                   `json:"minLength,omitempty"`
+	MaxValue        *string                  `json:"maxValue,omitempty"`
+	MinValue        *string                  `json:"minValue,omitempty"`
+	MaxLength       *string                  `json:"maxLength,omitempty"`
+	MinLength       *string                  `json:"minLength,omitempty"`
 	DefaultValue    any                      `json:"defaultValue,omitempty"`
 	DefaultNowValue *bool                    `json:"defaultNowValue,omitempty"`
 	Options         map[string]FieldOption   `json:"options,omitempty"`
 	Align           string                   `json:"align,omitempty"`
-	Expression      string                   `json:"expression,omitempty"`
+	Expression      *string                  `json:"expression,omitempty"`
 	HideExpression  *bool                    `json:"hideExpression,omitempty"`
 	Digit           *bool                    `json:"digit,omitempty"`
 	ThumbnailSize   string                   `json:"thumbnailSize,omitempty"`
 	Protocol        string                   `json:"protocol,omitempty"`
 	Format          string                   `json:"format,omitempty"`
-	DisplayScale    string                   `json:"displayScale,omitempty"`
-	Unit            string                   `json:"unit,omitempty"`
+	DisplayScale    *string                  `json:"displayScale,omitempty"`
+	Unit            *string                  `json:"unit,omitempty"`
 	UnitPosition    string                   `json:"unitPosition,omitempty"`
-	Entities        []FieldEntity            `json:"entities,omitempty"`
+	Entities        []FieldEntity            `json:"entities,omitzero"`
 	ReferenceTable  *ReferenceTable          `json:"referenceTable,omitempty"`
 	Lookup          *Lookup                  `json:"lookup,omitempty"`
 	OpenGroup       *bool                    `json:"openGroup,omitempty"`
@@ -79,14 +80,16 @@ type RelatedApp struct {
 	Code string `json:"code,omitempty"`
 }
 
-// Lookup is the setting of a lookup field.
+// Lookup is the setting of a lookup field. When updating the field, the
+// settings not set are not changed. To clear a setting, set a pointer to an
+// empty string or an empty slice.
 type Lookup struct {
 	RelatedApp         RelatedApp     `json:"relatedApp"`
 	RelatedKeyField    string         `json:"relatedKeyField"`
-	FieldMappings      []FieldMapping `json:"fieldMappings,omitempty"`
-	LookupPickerFields []string       `json:"lookupPickerFields,omitempty"`
-	FilterCond         string         `json:"filterCond,omitempty"`
-	Sort               string         `json:"sort,omitempty"`
+	FieldMappings      []FieldMapping `json:"fieldMappings,omitzero"`
+	LookupPickerFields []string       `json:"lookupPickerFields,omitzero"`
+	FilterCond         *string        `json:"filterCond,omitempty"`
+	Sort               *string        `json:"sort,omitempty"`
 }
 
 // FieldMapping is a mapping of a field copied by a lookup field.

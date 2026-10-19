@@ -5,7 +5,8 @@ import "context"
 // View is the setting of a view of an app.
 //
 // Fields is used by list views, Date and Title by calendar views, and HTML,
-// Pager and Device by custom views.
+// Pager and Device by custom views. Nil FilterCond or Sort is not sent and
+// the setting is not changed, but a pointer to an empty string is sent.
 type View struct {
 	ID          int64    `json:"id,string,omitempty"`
 	Name        string   `json:"name,omitempty"`
@@ -18,8 +19,8 @@ type View struct {
 	HTML        string   `json:"html,omitempty"`
 	Pager       *bool    `json:"pager,omitempty"`
 	Device      string   `json:"device,omitempty"`
-	FilterCond  string   `json:"filterCond,omitempty"`
-	Sort        string   `json:"sort,omitempty"`
+	FilterCond  *string  `json:"filterCond,omitempty"`
+	Sort        *string  `json:"sort,omitempty"`
 }
 
 // ViewType is the type of a view.

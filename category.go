@@ -7,9 +7,11 @@ import (
 )
 
 // Categories is the category settings of an app, keyed by the category name.
+// Nil Categories is not sent and the categories are not changed, but an empty
+// one is sent. Clearing the categories requires Enabled to be false.
 type Categories struct {
 	Enabled    *bool               `json:"enabled,omitempty"`
-	Categories map[string]Category `json:"categories,omitempty"`
+	Categories map[string]Category `json:"categories,omitzero"`
 	Revision   int64               `json:"revision,string,omitempty"`
 }
 

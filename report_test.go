@@ -75,6 +75,7 @@ func TestClientGetReports(t *testing.T) {
 						Index:        0,
 						Groups:       []ReportGroup{{Code: "date", Per: "MONTH"}, {Code: "category"}},
 						Aggregations: []ReportAggregation{{Type: AggregationTypeSum, Code: "amount"}},
+						FilterCond:   new(""),
 						Sorts:        []ReportSort{{By: "GROUP1", Order: "ASC"}},
 						PeriodicReport: &PeriodicReport{
 							Active: new(true),
@@ -88,6 +89,7 @@ func TestClientGetReports(t *testing.T) {
 						Index:        1,
 						Groups:       []ReportGroup{{Code: "status"}},
 						Aggregations: []ReportAggregation{{Type: AggregationTypeCount}},
+						FilterCond:   new(""),
 						Sorts:        []ReportSort{{By: "TOTAL", Order: "DESC"}},
 					},
 				},

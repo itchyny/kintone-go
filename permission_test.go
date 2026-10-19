@@ -317,3 +317,21 @@ func TestClientUpdateFieldPermissions(t *testing.T) {
 		t.Errorf("revision: got %d, want %d", revision, 4)
 	}
 }
+
+func TestClientUpdateRecordPermissionsNil(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{"revision": "4"}`)
+	c := newTestClient(t, ts)
+	if _, err := c.UpdateRecordPermissions(t.Context(), 1, nil, 0); err != nil {
+		t.Fatalf("UpdateRecordPermissions returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPut, "/k/v1/preview/record/acl.json", `{"app": 1, "rights": []}`)
+}
+
+func TestClientUpdateFieldPermissionsNil(t *testing.T) {
+	ts, got := newTestServer(t, http.StatusOK, `{"revision": "4"}`)
+	c := newTestClient(t, ts)
+	if _, err := c.UpdateFieldPermissions(t.Context(), 1, nil, 0); err != nil {
+		t.Fatalf("UpdateFieldPermissions returned error: %v", err)
+	}
+	assertRequest(t, got, http.MethodPut, "/k/v1/preview/field/acl.json", `{"app": 1, "rights": []}`)
+}

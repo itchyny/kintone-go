@@ -112,6 +112,11 @@ func TestClientUpdateCategories(t *testing.T) {
 			settings: Categories{Enabled: new(false)},
 			wantBody: `{"app": 1, "enabled": false}`,
 		},
+		{
+			name:     "clear categories",
+			settings: Categories{Enabled: new(false), Categories: map[string]Category{}},
+			wantBody: `{"app": 1, "enabled": false, "categories": {}}`,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

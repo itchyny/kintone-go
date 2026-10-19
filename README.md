@@ -197,7 +197,7 @@ if err != nil {
 	return err
 }
 _, err = client.UpdateGeneralSettings(ctx, added.App, kintone.GeneralSettings{
-	Description:    "Deals and activities.",
+	Description:    new("Deals and activities."),
 	EnableComments: new(false),
 }, settings.Revision)
 if err != nil {

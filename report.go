@@ -2,7 +2,8 @@ package kintone
 
 import "context"
 
-// Report is the setting of a graph of an app.
+// Report is the setting of a graph of an app. Nil FilterCond is not sent and
+// the setting is not changed, but a pointer to an empty string is sent.
 type Report struct {
 	ID             int64               `json:"id,string,omitempty"`
 	Name           string              `json:"name,omitempty"`
@@ -11,7 +12,7 @@ type Report struct {
 	Index          int                 `json:"index,string"`
 	Groups         []ReportGroup       `json:"groups,omitempty"`
 	Aggregations   []ReportAggregation `json:"aggregations,omitempty"`
-	FilterCond     string              `json:"filterCond,omitempty"`
+	FilterCond     *string             `json:"filterCond,omitempty"`
 	Sorts          []ReportSort        `json:"sorts,omitempty"`
 	PeriodicReport *PeriodicReport     `json:"periodicReport,omitempty"`
 }

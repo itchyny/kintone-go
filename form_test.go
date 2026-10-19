@@ -62,7 +62,9 @@ func TestClientGetFormFields(t *testing.T) {
 						NoLabel:        new(false),
 						Required:       new(true),
 						Unique:         new(false),
-						MaxLength:      "64",
+						MaxLength:      new("64"),
+						MinLength:      new(""),
+						Expression:     new(""),
 						DefaultValue:   "",
 						HideExpression: new(false),
 					},
@@ -150,7 +152,8 @@ func TestFieldPropertyUnmarshalJSON(t *testing.T) {
 					RelatedKeyField:    "name",
 					FieldMappings:      []FieldMapping{{Field: "phone", RelatedField: "tel"}},
 					LookupPickerFields: []string{"name", "tel"},
-					Sort:               "$id desc",
+					FilterCond:         new(""),
+					Sort:               new("$id desc"),
 				},
 			},
 		},
@@ -300,7 +303,13 @@ func TestClientUpdateFormFields(t *testing.T) {
 	ts, got := newTestServer(t, http.StatusOK, `{"revision": "5"}`)
 	c := newTestClient(t, ts)
 	revision, err := c.UpdateFormFields(t.Context(), 1, map[string]FieldProperty{
-		"title": {Type: FieldTypeSingleLineText, Code: "subject", Required: new(false)},
+		"title":  {Type: FieldTypeSingleLineText, Code: "subject", Required: new(false)},
+		"amount": {Type: FieldTypeNumber, MaxValue: new(""), Unit: new("")},
+		"owner":  {Type: FieldTypeUserSelect, Entities: []FieldEntity{}},
+		"customer": {Type: FieldTypeSingleLineText, Lookup: &Lookup{
+			RelatedApp: RelatedApp{App: 3}, RelatedKeyField: "name",
+			LookupPickerFields: []string{}, FilterCond: new(""),
+		}},
 	}, 0)
 	if err != nil {
 		t.Fatalf("UpdateFormFields returned error: %v", err)
@@ -308,7 +317,16 @@ func TestClientUpdateFormFields(t *testing.T) {
 	assertRequest(t, got, http.MethodPut, "/k/v1/preview/app/form/fields.json", `{
 		"app": 1,
 		"properties": {
-			"title": {"type": "SINGLE_LINE_TEXT", "code": "subject", "required": false}
+			"title": {"type": "SINGLE_LINE_TEXT", "code": "subject", "required": false},
+			"amount": {"type": "NUMBER", "maxValue": "", "unit": ""},
+			"owner": {"type": "USER_SELECT", "entities": []},
+			"customer": {
+				"type": "SINGLE_LINE_TEXT",
+				"lookup": {
+					"relatedApp": {"app": "3"}, "relatedKeyField": "name",
+					"lookupPickerFields": [], "filterCond": ""
+				}
+			}
 		}
 	}`)
 	if revision != 5 {

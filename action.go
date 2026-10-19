@@ -3,9 +3,8 @@ package kintone
 import "context"
 
 // AppAction is the setting of an action of an app, which copies a record to
-// DestApp. DestApp is nil if the user has no permission on the app.
-// Nil Mappings, Entities or FilterCond is not sent and the setting is not
-// changed, but an empty one is sent.
+// DestApp. Nil Mappings, Entities or FilterCond is not sent and the setting is
+// not changed, but an empty one is sent.
 type AppAction struct {
 	ID         int64           `json:"id,string,omitempty"`
 	Name       string          `json:"name,omitempty"`

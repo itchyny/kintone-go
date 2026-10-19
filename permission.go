@@ -107,12 +107,9 @@ func (c *Client) GetRecordPermissions(ctx context.Context, req GetAppSettingsReq
 }
 
 // UpdateRecordPermissions updates the record permissions of an app in the
-// preview environment and returns the new revision. Nil rights is sent as an
-// empty list. The revision is not checked if revision is zero.
+// preview environment and returns the new revision. The revision is not
+// checked if revision is zero.
 func (c *Client) UpdateRecordPermissions(ctx context.Context, app int64, rights []RecordRight, revision int64) (int64, error) {
-	if rights == nil {
-		rights = []RecordRight{}
-	}
 	params := struct {
 		App      int64         `json:"app"`
 		Rights   []RecordRight `json:"rights"`
@@ -150,12 +147,9 @@ func (c *Client) GetFieldPermissions(ctx context.Context, req GetAppSettingsRequ
 }
 
 // UpdateFieldPermissions updates the field permissions of an app in the
-// preview environment and returns the new revision. Nil rights is sent as an
-// empty list. The revision is not checked if revision is zero.
+// preview environment and returns the new revision. The revision is not
+// checked if revision is zero.
 func (c *Client) UpdateFieldPermissions(ctx context.Context, app int64, rights []FieldRight, revision int64) (int64, error) {
-	if rights == nil {
-		rights = []FieldRight{}
-	}
 	params := struct {
 		App      int64        `json:"app"`
 		Rights   []FieldRight `json:"rights"`

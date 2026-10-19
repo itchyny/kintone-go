@@ -355,8 +355,7 @@ func TestClientDoMarshalError(t *testing.T) {
 	ts, got := newTestServer(t, http.StatusOK, `{}`)
 	c := newTestClient(t, ts)
 	_, err := c.do[struct{}](t.Context(), http.MethodPost, "record.json", map[string]any{"x": func() {}})
-	var jsonErr *json.UnsupportedTypeError
-	if !errors.As(err, &jsonErr) {
+	if _, ok := errors.AsType[*json.UnsupportedTypeError](err); !ok {
 		t.Errorf("do should return *json.UnsupportedTypeError but got: %v", err)
 	}
 	if got.Method != "" {
@@ -443,8 +442,8 @@ func TestClientDoError(t *testing.T) {
 			ts, _ := newTestServer(t, tc.status, tc.body)
 			c := newTestClient(t, ts)
 			_, err := c.do[map[string]any](t.Context(), http.MethodGet, "record.json", nil)
-			var e *Error
-			if !errors.As(err, &e) {
+			e, ok := errors.AsType[*Error](err)
+			if !ok {
 				t.Fatalf("do should return *Error but got: %v", err)
 			}
 			got := *e
@@ -477,8 +476,8 @@ func TestClientDoErrorHeader(t *testing.T) {
 			}))
 			c := newTestClient(t, ts)
 			_, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil)
-			var e *Error
-			if !errors.As(err, &e) {
+			e, ok := errors.AsType[*Error](err)
+			if !ok {
 				t.Fatalf("do should return *Error but got: %v", err)
 			}
 			if got := e.Header.Get("X-ConcurrencyLimit-Limit"); got != "100" {
@@ -499,8 +498,8 @@ func TestClientDoBulkError(t *testing.T) {
 	}))
 	c := newTestClient(t, ts)
 	_, err := c.do[struct{}](t.Context(), http.MethodPost, "bulkRequest.json", map[string]any{})
-	var bulkErr *BulkError
-	if !errors.As(err, &bulkErr) {
+	bulkErr, ok := errors.AsType[*BulkError](err)
+	if !ok {
 		t.Fatalf("do should return *BulkError but got: %v", err)
 	}
 	if bulkErr.Index != 1 {
@@ -517,9 +516,8 @@ func TestClientDoBulkError(t *testing.T) {
 	if want := "kintone: bulk request 1: Test error. (status: 404, code: TEST_ERROR, id: abc123)"; err.Error() != want {
 		t.Errorf("error message: got %q, want %q", err.Error(), want)
 	}
-	var e *Error
-	if !errors.As(err, &e) || e != bulkErr.Err {
-		t.Errorf("errors.As should find *Error in *BulkError but got: %v", e)
+	if e, ok := errors.AsType[*Error](err); !ok || e != bulkErr.Err {
+		t.Errorf("errors.AsType should find *Error in *BulkError but got: %v", e)
 	}
 	if !IsErrorCode(err, "TEST_ERROR") {
 		t.Error("IsErrorCode should find the code in *BulkError")
@@ -530,12 +528,10 @@ func TestClientDoBulkErrorWithoutError(t *testing.T) {
 	ts, _ := newTestServer(t, http.StatusBadRequest, `{"results": [{}, {}]}`)
 	c := newTestClient(t, ts)
 	_, err := c.do[struct{}](t.Context(), http.MethodPost, "bulkRequest.json", map[string]any{})
-	var bulkErr *BulkError
-	if errors.As(err, &bulkErr) {
+	if _, ok := errors.AsType[*BulkError](err); ok {
 		t.Errorf("do should not return *BulkError without an error result but got: %v", err)
 	}
-	var e *Error
-	if !errors.As(err, &e) || e.StatusCode != http.StatusBadRequest {
+	if e, ok := errors.AsType[*Error](err); !ok || e.StatusCode != http.StatusBadRequest {
 		t.Errorf("do should return *Error but got: %v", err)
 	}
 }
@@ -644,8 +640,7 @@ func TestClientRedirect(t *testing.T) {
 		redirected = false
 		c := newTestClient(t, ts, opts...)
 		_, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil)
-		var e *Error
-		if !errors.As(err, &e) || e.StatusCode != http.StatusFound {
+		if e, ok := errors.AsType[*Error](err); !ok || e.StatusCode != http.StatusFound {
 			t.Errorf("do should return error of status 302 but got: %v", err)
 		}
 		if redirected {

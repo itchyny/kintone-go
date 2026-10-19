@@ -374,6 +374,6 @@ func (e *BulkError) Unwrap() error {
 
 // IsErrorCode reports whether err is an *Error with the code.
 func IsErrorCode(err error, code string) bool {
-	var e *Error
-	return errors.As(err, &e) && e.Code == code
+	e, ok := errors.AsType[*Error](err)
+	return ok && e.Code == code
 }

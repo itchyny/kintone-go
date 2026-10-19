@@ -321,8 +321,7 @@ func TestClientAllRecordsWarning(t *testing.T) {
 	if len(errs) != 1 {
 		t.Fatalf("number of errors: got %d, want %d", len(errs), 1)
 	}
-	var warning *WarningError
-	if !errors.As(errs[0], &warning) || warning.Message != "Filter aborted because of too many search results." {
+	if warning, ok := errors.AsType[*WarningError](errs[0]); !ok || warning.Message != "Filter aborted because of too many search results." {
 		t.Errorf("AllRecords should yield *WarningError but got: %v", errs[0])
 	}
 	if want := "kintone: Filter aborted because of too many search results."; errs[0].Error() != want {
@@ -524,7 +523,10 @@ func TestClientAllRecordsByIDWarning(t *testing.T) {
 		t.Errorf("record IDs: got %v, want %v", ids, want)
 	}
 	var warning *WarningError
-	if len(errs) != 1 || !errors.As(errs[0], &warning) || warning.Message != "Filter aborted because of too many search results" {
+	if len(errs) == 1 {
+		warning, _ = errors.AsType[*WarningError](errs[0])
+	}
+	if warning == nil || warning.Message != "Filter aborted because of too many search results" {
 		t.Errorf("AllRecordsByID should yield one *WarningError after the records but got: %v", errs)
 	}
 }

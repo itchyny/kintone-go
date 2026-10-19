@@ -126,8 +126,7 @@ func TestBulkRequestSendError(t *testing.T) {
 	added := bulk.AddRecord(1, Record{})
 	updated := bulk.UpdateRecord(1, RecordUpdate{ID: 2})
 	err := bulk.Send(t.Context())
-	var bulkErr *BulkError
-	if !errors.As(err, &bulkErr) || bulkErr.Index != 1 || bulkErr.Err.Code != "TEST_ERROR" {
+	if bulkErr, ok := errors.AsType[*BulkError](err); !ok || bulkErr.Index != 1 || bulkErr.Err.Code != "TEST_ERROR" {
 		t.Fatalf("Send should return *BulkError of index 1 but got: %v", err)
 	}
 	if !IsErrorCode(err, "TEST_ERROR") {
@@ -353,12 +352,10 @@ func TestClientAddAllRecordsError(t *testing.T) {
 	if !reflect.DeepEqual(res, want) {
 		t.Errorf("response: got %+v, want %+v", res, want)
 	}
-	var allErr *AllRecordsError
-	if !errors.As(err, &allErr) || allErr.Processed != 4 {
+	if allErr, ok := errors.AsType[*AllRecordsError](err); !ok || allErr.Processed != 4 {
 		t.Fatalf("AddAllRecords returned unexpected error: %v", err)
 	}
-	var bulkErr *BulkError
-	if !errors.As(err, &bulkErr) || bulkErr.Index != 1 || !IsErrorCode(err, "TEST_ERROR") {
+	if bulkErr, ok := errors.AsType[*BulkError](err); !ok || bulkErr.Index != 1 || !IsErrorCode(err, "TEST_ERROR") {
 		t.Errorf("AddAllRecords returned unexpected error: %v", err)
 	}
 	if want := "kintone: processed 4 records: bulk request 1: Test error. (status: 400, code: TEST_ERROR, id: abc123)"; err.Error() != want {

@@ -54,13 +54,14 @@ type FieldEntity struct {
 	Type EntityType `json:"type"`
 }
 
-// ReferenceTable is the setting of a related records field.
+// ReferenceTable is the setting of a related records field. When RelatedApp
+// is set in an update, the server resets the omitted settings.
 type ReferenceTable struct {
-	RelatedApp    RelatedApp              `json:"relatedApp"`
-	Condition     ReferenceTableCondition `json:"condition"`
-	FilterCond    string                  `json:"filterCond,omitzero"`
+	RelatedApp    RelatedApp              `json:"relatedApp,omitzero"`
+	Condition     ReferenceTableCondition `json:"condition,omitzero"`
+	FilterCond    *string                 `json:"filterCond,omitzero"`
 	DisplayFields []string                `json:"displayFields,omitzero"`
-	Sort          string                  `json:"sort,omitzero"`
+	Sort          *string                 `json:"sort,omitzero"`
 	Size          string                  `json:"size,omitzero"`
 }
 
@@ -80,8 +81,8 @@ type RelatedApp struct {
 
 // Lookup is the setting of a lookup field.
 type Lookup struct {
-	RelatedApp         RelatedApp     `json:"relatedApp"`
-	RelatedKeyField    string         `json:"relatedKeyField"`
+	RelatedApp         RelatedApp     `json:"relatedApp,omitzero"`
+	RelatedKeyField    string         `json:"relatedKeyField,omitzero"`
 	FieldMappings      []FieldMapping `json:"fieldMappings,omitzero"`
 	LookupPickerFields []string       `json:"lookupPickerFields,omitzero"`
 	FilterCond         *string        `json:"filterCond,omitzero"`

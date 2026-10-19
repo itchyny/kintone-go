@@ -198,8 +198,9 @@ func TestFieldPropertyUnmarshalJSON(t *testing.T) {
 				ReferenceTable: &ReferenceTable{
 					RelatedApp:    RelatedApp{App: 4},
 					Condition:     ReferenceTableCondition{Field: "id", RelatedField: "customer_id"},
+					FilterCond:    new(""),
 					DisplayFields: []string{"date", "amount"},
-					Sort:          "date desc",
+					Sort:          new("date desc"),
 					Size:          "5",
 				},
 			},
@@ -310,6 +311,10 @@ func TestClientUpdateFormFields(t *testing.T) {
 			RelatedApp: RelatedApp{App: 3}, RelatedKeyField: "name",
 			LookupPickerFields: []string{}, FilterCond: new(""),
 		}},
+		"supplier": {Type: FieldTypeNumber, Lookup: &Lookup{Sort: new("name asc")}},
+		"orders": {Type: FieldTypeReferenceTable, ReferenceTable: &ReferenceTable{
+			FilterCond: new(""), Sort: new(""),
+		}},
 	}, 0)
 	if err != nil {
 		t.Fatalf("UpdateFormFields returned error: %v", err)
@@ -326,7 +331,9 @@ func TestClientUpdateFormFields(t *testing.T) {
 					"relatedApp": {"app": "3"}, "relatedKeyField": "name",
 					"lookupPickerFields": [], "filterCond": ""
 				}
-			}
+			},
+			"supplier": {"type": "NUMBER", "lookup": {"sort": "name asc"}},
+			"orders": {"type": "REFERENCE_TABLE", "referenceTable": {"filterCond": "", "sort": ""}}
 		}
 	}`)
 	if revision != 5 {

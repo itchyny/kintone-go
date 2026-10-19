@@ -121,6 +121,12 @@ func TestClientUpdateReports(t *testing.T) {
 				Period: ReportPeriod{Every: "HOUR", Minute: "30"},
 			},
 		},
+		"Inactive": {
+			Name:           "Inactive",
+			ChartType:      ChartTypeTable,
+			Index:          1,
+			PeriodicReport: &PeriodicReport{Active: new(false)},
+		},
 	}, 0)
 	if err != nil {
 		t.Fatalf("UpdateReports returned error: %v", err)
@@ -136,6 +142,12 @@ func TestClientUpdateReports(t *testing.T) {
 				"aggregations": [{"type": "COUNT"}],
 				"sorts": [{"by": "TOTAL", "order": "DESC"}],
 				"periodicReport": {"active": false, "period": {"every": "HOUR", "minute": "30"}}
+			},
+			"Inactive": {
+				"name": "Inactive",
+				"chartType": "TABLE",
+				"index": "1",
+				"periodicReport": {"active": false}
 			}
 		}
 	}`)

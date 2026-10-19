@@ -76,7 +76,7 @@ type ReportSort struct {
 // PeriodicReport is the setting of the periodic report of a graph.
 type PeriodicReport struct {
 	Active *bool        `json:"active,omitzero"`
-	Period ReportPeriod `json:"period"`
+	Period ReportPeriod `json:"period,omitzero"`
 }
 
 // ReportPeriod is the period of a periodic report.

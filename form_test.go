@@ -271,7 +271,7 @@ func TestClientAddFormFields(t *testing.T) {
 				"High": {Label: "High", Index: 1},
 			},
 			DefaultValue: "Low",
-			Align:        "HORIZONTAL",
+			Align:        AlignmentHorizontal,
 		},
 	}, 3)
 	if err != nil {

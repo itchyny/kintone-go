@@ -7,11 +7,21 @@ import (
 
 // Customization is the JavaScript and CSS customization of an app.
 type Customization struct {
-	Scope    string              `json:"scope,omitzero"`
+	Scope    CustomizationScope  `json:"scope,omitzero"`
 	Desktop  *CustomizationFiles `json:"desktop,omitzero"`
 	Mobile   *CustomizationFiles `json:"mobile,omitzero"`
 	Revision int64               `json:"revision,string,omitzero"`
 }
+
+// CustomizationScope is the users the customization applies to.
+type CustomizationScope string
+
+// Customization scopes.
+const (
+	CustomizationScopeAll   CustomizationScope = "ALL"
+	CustomizationScopeAdmin CustomizationScope = "ADMIN"
+	CustomizationScopeNone  CustomizationScope = "NONE"
+)
 
 // CustomizationFiles is the JavaScript and CSS files of the customization.
 type CustomizationFiles struct {
@@ -22,10 +32,19 @@ type CustomizationFiles struct {
 // CustomizationFile is a file of the customization. URL is set for files
 // specified by URL, and File is set for uploaded files.
 type CustomizationFile struct {
-	Type string    `json:"type"`
-	URL  string    `json:"url,omitzero"`
-	File *FileInfo `json:"file,omitzero"`
+	Type CustomizationFileType `json:"type"`
+	URL  string                `json:"url,omitzero"`
+	File *FileInfo             `json:"file,omitzero"`
 }
+
+// CustomizationFileType is the type of a customization file.
+type CustomizationFileType string
+
+// Customization file types.
+const (
+	CustomizationFileTypeURL  CustomizationFileType = "URL"
+	CustomizationFileTypeFile CustomizationFileType = "FILE"
+)
 
 // GetCustomization gets the JavaScript and CSS customization of an app. Lang
 // of the request is not used.

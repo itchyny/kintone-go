@@ -8,7 +8,7 @@ type Guest struct {
 	Code             string `json:"code"`
 	Password         string `json:"password"`
 	Timezone         string `json:"timezone"`
-	Locale           string `json:"locale,omitzero"`
+	Locale           Locale `json:"locale,omitzero"`
 	Image            string `json:"image,omitzero"`
 	Name             string `json:"name"`
 	SurNameReading   string `json:"surNameReading,omitzero"`
@@ -18,6 +18,17 @@ type Guest struct {
 	Phone            string `json:"phone,omitzero"`
 	Callto           string `json:"callto,omitzero"`
 }
+
+// Locale is the language of a user. LocaleAuto follows the browser.
+type Locale string
+
+// Locales.
+const (
+	LocaleAuto Locale = "auto"
+	LocaleJa   Locale = "ja"
+	LocaleEn   Locale = "en"
+	LocaleZh   Locale = "zh"
+)
 
 // AddGuests adds guest users. The guest space of the client is not used.
 func (c *Client) AddGuests(ctx context.Context, guests []Guest) error {

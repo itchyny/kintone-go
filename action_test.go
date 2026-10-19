@@ -68,8 +68,8 @@ func TestClientGetAppActions(t *testing.T) {
 						Index:   0,
 						DestApp: &RelatedApp{App: 5, Code: "INVOICE"},
 						Mappings: []ActionMapping{
-							{SrcType: "FIELD", SrcField: "customer", DestField: "billTo"},
-							{SrcType: "RECORD_URL", DestField: "source"},
+							{SrcType: MappingSourceTypeField, SrcField: "customer", DestField: "billTo"},
+							{SrcType: MappingSourceTypeRecordURL, DestField: "source"},
 						},
 						Entities:   []FieldEntity{{Type: EntityTypeGroup, Code: "sales"}},
 						FilterCond: new(`status = "Won"`),

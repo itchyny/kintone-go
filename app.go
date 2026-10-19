@@ -222,7 +222,7 @@ type AppStatistics struct {
 	Name              string    `json:"name"`
 	Space             *AppSpace `json:"space"`
 	AppGroup          string    `json:"appGroup"`
-	Status            string    `json:"status"`
+	Status            AppStatus `json:"status"`
 	RecordUpdatedAt   time.Time `json:"recordUpdatedAt"`
 	RecordCount       int64     `json:"recordCount,string"`
 	FieldCount        int64     `json:"fieldCount,string"`
@@ -236,6 +236,18 @@ type AppStatistics struct {
 	Modifier          Entity    `json:"modifier"`
 	ModifiedAt        time.Time `json:"modifiedAt"`
 }
+
+// AppStatus is the status of an app in the statistics. NOT_ACTIVATED means
+// that the app has never been deployed, and CHANGED means that the app has
+// settings not deployed yet.
+type AppStatus string
+
+// App statuses.
+const (
+	AppStatusActivated    AppStatus = "ACTIVATED"
+	AppStatusNotActivated AppStatus = "NOT_ACTIVATED"
+	AppStatusChanged      AppStatus = "CHANGED"
+)
 
 // AppSpace is the space of an app.
 type AppSpace struct {

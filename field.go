@@ -86,6 +86,7 @@ const (
 	EntityTypeFieldEntity  EntityType = "FIELD_ENTITY"
 	EntityTypeCreator      EntityType = "CREATOR"
 	EntityTypeCustomField  EntityType = "CUSTOM_FIELD"
+	EntityTypeFunction     EntityType = "FUNCTION"
 )
 
 // FileInfo is a file of an attachment field.

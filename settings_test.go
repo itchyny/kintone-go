@@ -53,17 +53,17 @@ func TestClientGetGeneralSettings(t *testing.T) {
 				Name:        "Deals",
 				Description: new("<b>Deals</b>"),
 				Icon: &AppIcon{
-					Type: "FILE",
+					Type: AppIconTypeFile,
 					File: &FileInfo{ContentType: "image/png", FileKey: "key1", Name: "icon.png", Size: 1024},
 				},
-				Theme:                     "WHITE",
-				TitleField:                &TitleField{SelectionMode: "MANUAL", Code: "title"},
+				Theme:                     ThemeWhite,
+				TitleField:                &TitleField{SelectionMode: TitleSelectionModeManual, Code: "title"},
 				EnableThumbnails:          new(true),
 				EnableBulkDeletion:        new(false),
 				EnableComments:            new(true),
 				EnableDuplicateRecord:     new(true),
 				EnableInlineRecordEditing: new(false),
-				NumberPrecision:           &NumberPrecision{Digits: "16", DecimalPlaces: "4", RoundingMode: "HALF_EVEN"},
+				NumberPrecision:           &NumberPrecision{Digits: "16", DecimalPlaces: "4", RoundingMode: RoundingModeHalfEven},
 				FirstMonthOfFiscalYear:    "4",
 				Revision:                  3,
 			}
@@ -85,7 +85,7 @@ func TestClientUpdateGeneralSettings(t *testing.T) {
 			name: "some settings with revision",
 			settings: GeneralSettings{
 				Name:           "Deals",
-				Icon:           &AppIcon{Type: "PRESET", Key: "APP72"},
+				Icon:           &AppIcon{Type: AppIconTypePreset, Key: "APP72"},
 				EnableComments: new(false),
 				Revision:       9,
 			},
@@ -105,7 +105,7 @@ func TestClientUpdateGeneralSettings(t *testing.T) {
 		},
 		{
 			name:     "revision of the settings is not used",
-			settings: GeneralSettings{Theme: "BLUE", Revision: 9},
+			settings: GeneralSettings{Theme: ThemeBlue, Revision: 9},
 			wantBody: `{"app": 1, "theme": "BLUE"}`,
 		},
 	}

@@ -7,20 +7,37 @@ import "context"
 // Fields is used by list views, Date and Title by calendar views, and HTML,
 // Pager and Device by custom views.
 type View struct {
-	ID          int64    `json:"id,string,omitzero"`
-	Name        string   `json:"name,omitzero"`
-	Type        ViewType `json:"type"`
-	BuiltinType string   `json:"builtinType,omitzero"`
-	Index       int      `json:"index,string"`
-	Fields      []string `json:"fields,omitzero"`
-	Date        string   `json:"date,omitzero"`
-	Title       string   `json:"title,omitzero"`
-	HTML        string   `json:"html,omitzero"`
-	Pager       *bool    `json:"pager,omitzero"`
-	Device      string   `json:"device,omitzero"`
-	FilterCond  *string  `json:"filterCond,omitzero"`
-	Sort        *string  `json:"sort,omitzero"`
+	ID          int64           `json:"id,string,omitzero"`
+	Name        string          `json:"name,omitzero"`
+	Type        ViewType        `json:"type"`
+	BuiltinType ViewBuiltinType `json:"builtinType,omitzero"`
+	Index       int             `json:"index,string"`
+	Fields      []string        `json:"fields,omitzero"`
+	Date        string          `json:"date,omitzero"`
+	Title       string          `json:"title,omitzero"`
+	HTML        string          `json:"html,omitzero"`
+	Pager       *bool           `json:"pager,omitzero"`
+	Device      ViewDevice      `json:"device,omitzero"`
+	FilterCond  *string         `json:"filterCond,omitzero"`
+	Sort        *string         `json:"sort,omitzero"`
 }
+
+// ViewBuiltinType is the type of a view created by kintone.
+type ViewBuiltinType string
+
+// View builtin types.
+const (
+	ViewBuiltinTypeAssignee ViewBuiltinType = "ASSIGNEE"
+)
+
+// ViewDevice is the devices to show a custom view on.
+type ViewDevice string
+
+// View devices.
+const (
+	ViewDeviceDesktop ViewDevice = "DESKTOP"
+	ViewDeviceAny     ViewDevice = "ANY"
+)
 
 // ViewType is the type of a view.
 type ViewType string

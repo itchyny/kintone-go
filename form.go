@@ -22,16 +22,16 @@ type FieldProperty struct {
 	DefaultValue    any                      `json:"defaultValue,omitzero"`
 	DefaultNowValue *bool                    `json:"defaultNowValue,omitzero"`
 	Options         map[string]FieldOption   `json:"options,omitzero"`
-	Align           string                   `json:"align,omitzero"`
+	Align           Alignment                `json:"align,omitzero"`
 	Expression      *string                  `json:"expression,omitzero"`
 	HideExpression  *bool                    `json:"hideExpression,omitzero"`
 	Digit           *bool                    `json:"digit,omitzero"`
 	ThumbnailSize   string                   `json:"thumbnailSize,omitzero"`
-	Protocol        string                   `json:"protocol,omitzero"`
-	Format          string                   `json:"format,omitzero"`
+	Protocol        LinkProtocol             `json:"protocol,omitzero"`
+	Format          CalcFormat               `json:"format,omitzero"`
 	DisplayScale    *string                  `json:"displayScale,omitzero"`
 	Unit            *string                  `json:"unit,omitzero"`
-	UnitPosition    string                   `json:"unitPosition,omitzero"`
+	UnitPosition    UnitPosition             `json:"unitPosition,omitzero"`
 	Entities        []FieldEntity            `json:"entities,omitzero"`
 	ReferenceTable  *ReferenceTable          `json:"referenceTable,omitzero"`
 	Lookup          *Lookup                  `json:"lookup,omitzero"`
@@ -39,6 +39,48 @@ type FieldProperty struct {
 	Fields          map[string]FieldProperty `json:"fields,omitzero"`
 	Enabled         *bool                    `json:"enabled,omitzero"`
 }
+
+// Alignment is the alignment of the options of radio button and check box fields.
+type Alignment string
+
+// Alignments.
+const (
+	AlignmentHorizontal Alignment = "HORIZONTAL"
+	AlignmentVertical   Alignment = "VERTICAL"
+)
+
+// LinkProtocol is the type of the values of a link field.
+type LinkProtocol string
+
+// Link protocols.
+const (
+	LinkProtocolWeb  LinkProtocol = "WEB"
+	LinkProtocolCall LinkProtocol = "CALL"
+	LinkProtocolMail LinkProtocol = "MAIL"
+)
+
+// CalcFormat is the display format of a calculated field.
+type CalcFormat string
+
+// Calculation formats.
+const (
+	CalcFormatNumber        CalcFormat = "NUMBER"
+	CalcFormatNumberDigit   CalcFormat = "NUMBER_DIGIT"
+	CalcFormatDateTime      CalcFormat = "DATETIME"
+	CalcFormatDate          CalcFormat = "DATE"
+	CalcFormatTime          CalcFormat = "TIME"
+	CalcFormatHourMinute    CalcFormat = "HOUR_MINUTE"
+	CalcFormatDayHourMinute CalcFormat = "DAY_HOUR_MINUTE"
+)
+
+// UnitPosition is the position of the unit of number and calculated fields.
+type UnitPosition string
+
+// Unit positions.
+const (
+	UnitPositionBefore UnitPosition = "BEFORE"
+	UnitPositionAfter  UnitPosition = "AFTER"
+)
 
 // FieldOption is an option of a check box, radio button, multi-choice or
 // drop-down field.

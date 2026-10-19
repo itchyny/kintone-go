@@ -17,10 +17,19 @@ type AppAction struct {
 // ActionMapping is a mapping from the source to the field of the destination
 // app. SrcField is set if SrcType is FIELD.
 type ActionMapping struct {
-	SrcType   string `json:"srcType"`
-	SrcField  string `json:"srcField,omitzero"`
-	DestField string `json:"destField"`
+	SrcType   MappingSourceType `json:"srcType"`
+	SrcField  string            `json:"srcField,omitzero"`
+	DestField string            `json:"destField"`
 }
+
+// MappingSourceType is the source of a mapping of an app action.
+type MappingSourceType string
+
+// Mapping source types.
+const (
+	MappingSourceTypeField     MappingSourceType = "FIELD"
+	MappingSourceTypeRecordURL MappingSourceType = "RECORD_URL"
+)
 
 // AppActions is the actions of an app, keyed by the action name.
 type AppActions struct {

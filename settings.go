@@ -10,7 +10,7 @@ type GeneralSettings struct {
 	Name                      string           `json:"name,omitzero"`
 	Description               *string          `json:"description,omitzero"`
 	Icon                      *AppIcon         `json:"icon,omitzero"`
-	Theme                     string           `json:"theme,omitzero"`
+	Theme                     Theme            `json:"theme,omitzero"`
 	TitleField                *TitleField      `json:"titleField,omitzero"`
 	EnableThumbnails          *bool            `json:"enableThumbnails,omitzero"`
 	EnableBulkDeletion        *bool            `json:"enableBulkDeletion,omitzero"`
@@ -22,26 +22,72 @@ type GeneralSettings struct {
 	Revision                  int64            `json:"revision,string,omitzero"`
 }
 
+// Theme is the color theme of an app. The themes CLIPBOARD, BINDER, PENCIL and
+// CLIPS are deprecated.
+type Theme string
+
+// Themes.
+const (
+	ThemeWhite     Theme = "WHITE"
+	ThemeRed       Theme = "RED"
+	ThemeGreen     Theme = "GREEN"
+	ThemeBlue      Theme = "BLUE"
+	ThemeYellow    Theme = "YELLOW"
+	ThemeBlack     Theme = "BLACK"
+	ThemeClipboard Theme = "CLIPBOARD"
+	ThemeBinder    Theme = "BINDER"
+	ThemePencil    Theme = "PENCIL"
+	ThemeClips     Theme = "CLIPS"
+)
+
 // AppIcon is the icon of an app. Key is set for preset icons, and File is set
 // for uploaded images.
 type AppIcon struct {
-	Type string    `json:"type"`
-	Key  string    `json:"key,omitzero"`
-	File *FileInfo `json:"file,omitzero"`
+	Type AppIconType `json:"type"`
+	Key  string      `json:"key,omitzero"`
+	File *FileInfo   `json:"file,omitzero"`
 }
+
+// AppIconType is the type of an app icon.
+type AppIconType string
+
+// App icon types.
+const (
+	AppIconTypePreset AppIconType = "PRESET"
+	AppIconTypeFile   AppIconType = "FILE"
+)
 
 // TitleField is the field used as the title of records.
 type TitleField struct {
-	SelectionMode string `json:"selectionMode"`
-	Code          string `json:"code,omitzero"`
+	SelectionMode TitleSelectionMode `json:"selectionMode"`
+	Code          string             `json:"code,omitzero"`
 }
+
+// TitleSelectionMode is how the title field is selected.
+type TitleSelectionMode string
+
+// Title selection modes.
+const (
+	TitleSelectionModeAuto   TitleSelectionMode = "AUTO"
+	TitleSelectionModeManual TitleSelectionMode = "MANUAL"
+)
 
 // NumberPrecision is the precision of number and calculated fields.
 type NumberPrecision struct {
-	Digits        string `json:"digits,omitzero"`
-	DecimalPlaces string `json:"decimalPlaces,omitzero"`
-	RoundingMode  string `json:"roundingMode,omitzero"`
+	Digits        string       `json:"digits,omitzero"`
+	DecimalPlaces string       `json:"decimalPlaces,omitzero"`
+	RoundingMode  RoundingMode `json:"roundingMode,omitzero"`
 }
+
+// RoundingMode is the rounding mode of numbers.
+type RoundingMode string
+
+// Rounding modes.
+const (
+	RoundingModeHalfEven RoundingMode = "HALF_EVEN"
+	RoundingModeUp       RoundingMode = "UP"
+	RoundingModeDown     RoundingMode = "DOWN"
+)
 
 // GetGeneralSettings gets the general settings of an app.
 func (c *Client) GetGeneralSettings(ctx context.Context, req GetAppSettingsRequest) (*GeneralSettings, error) {

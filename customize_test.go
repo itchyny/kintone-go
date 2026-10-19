@@ -44,11 +44,11 @@ func TestClientGetCustomization(t *testing.T) {
 			}
 			assertRequest(t, got, http.MethodGet, tc.wantPath, `{"app": 1}`)
 			want := &Customization{
-				Scope: "ALL",
+				Scope: CustomizationScopeAll,
 				Desktop: &CustomizationFiles{
 					JS: []CustomizationFile{
-						{Type: "URL", URL: "https://example.com/app.js"},
-						{Type: "FILE", File: &FileInfo{ContentType: "text/javascript", FileKey: "key1", Name: "app.js", Size: 100}},
+						{Type: CustomizationFileTypeURL, URL: "https://example.com/app.js"},
+						{Type: CustomizationFileTypeFile, File: &FileInfo{ContentType: "text/javascript", FileKey: "key1", Name: "app.js", Size: 100}},
 					},
 					CSS: []CustomizationFile{},
 				},
@@ -72,11 +72,11 @@ func TestClientUpdateCustomization(t *testing.T) {
 		{
 			name: "files",
 			customization: Customization{
-				Scope: "ADMIN",
+				Scope: CustomizationScopeAdmin,
 				Desktop: &CustomizationFiles{
 					JS: []CustomizationFile{
-						{Type: "URL", URL: "https://example.com/app.js"},
-						{Type: "FILE", File: &FileInfo{FileKey: "key2"}},
+						{Type: CustomizationFileTypeURL, URL: "https://example.com/app.js"},
+						{Type: CustomizationFileTypeFile, File: &FileInfo{FileKey: "key2"}},
 					},
 				},
 				Revision: 9,

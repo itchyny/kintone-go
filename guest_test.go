@@ -22,7 +22,7 @@ func TestClientAddGuests(t *testing.T) {
 					Code:           "guest@example.com",
 					Password:       "password",
 					Timezone:       "Asia/Tokyo",
-					Locale:         "ja",
+					Locale:         LocaleJa,
 					Name:           "Guest",
 					SurNameReading: "げすと",
 					Company:        "Example",

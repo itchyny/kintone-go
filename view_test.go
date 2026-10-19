@@ -67,10 +67,10 @@ func TestClientGetViews(t *testing.T) {
 					},
 					"Custom": {
 						ID: 12, Name: "Custom", Type: ViewTypeCustom, Index: 2,
-						HTML: "<div></div>", Pager: new(false), Device: "ANY", FilterCond: new(""), Sort: new(""),
+						HTML: "<div></div>", Pager: new(false), Device: ViewDeviceAny, FilterCond: new(""), Sort: new(""),
 					},
 					"(Assigned to me)": {
-						ID: 13, Name: "(Assigned to me)", Type: ViewTypeList, BuiltinType: "ASSIGNEE", Index: 3,
+						ID: 13, Name: "(Assigned to me)", Type: ViewTypeList, BuiltinType: ViewBuiltinTypeAssignee, Index: 3,
 						Fields: []string{"title"}, FilterCond: new(""), Sort: new(""),
 					},
 				},

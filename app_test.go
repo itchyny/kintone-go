@@ -383,7 +383,7 @@ func TestClientGetAppsStatistics(t *testing.T) {
 					Name:              "Deals",
 					Space:             &AppSpace{ID: 2, Name: "Sales"},
 					AppGroup:          "Public",
-					Status:            "ACTIVATED",
+					Status:            AppStatusActivated,
 					RecordUpdatedAt:   time.Date(2026, 10, 4, 5, 45, 36, 0, time.UTC),
 					RecordCount:       100,
 					FieldCount:        10,
@@ -400,7 +400,7 @@ func TestClientGetAppsStatistics(t *testing.T) {
 				{
 					ID:              4,
 					Name:            "Notes",
-					Status:          "NOT_ACTIVATED",
+					Status:          AppStatusNotActivated,
 					RecordUpdatedAt: time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC),
 					Creator:         Entity{Code: "alice", Name: "Alice"},
 					CreatedAt:       time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC),

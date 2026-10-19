@@ -73,13 +73,13 @@ func TestClientGetReports(t *testing.T) {
 						ChartType:    ChartTypeColumn,
 						ChartMode:    ChartModeStacked,
 						Index:        0,
-						Groups:       []ReportGroup{{Code: "date", Per: "MONTH"}, {Code: "category"}},
+						Groups:       []ReportGroup{{Code: "date", Per: TimeUnitMonth}, {Code: "category"}},
 						Aggregations: []ReportAggregation{{Type: AggregationTypeSum, Code: "amount"}},
 						FilterCond:   new(""),
-						Sorts:        []ReportSort{{By: "GROUP1", Order: "ASC"}},
+						Sorts:        []ReportSort{{By: ReportSortByGroup1, Order: SortOrderAsc}},
 						PeriodicReport: &PeriodicReport{
 							Active: new(true),
-							Period: ReportPeriod{Every: "MONTH", DayOfMonth: "END_OF_MONTH", Time: "09:00"},
+							Period: ReportPeriod{Every: TimeUnitMonth, DayOfMonth: "END_OF_MONTH", Time: "09:00"},
 						},
 					},
 					"Count": {
@@ -90,7 +90,7 @@ func TestClientGetReports(t *testing.T) {
 						Groups:       []ReportGroup{{Code: "status"}},
 						Aggregations: []ReportAggregation{{Type: AggregationTypeCount}},
 						FilterCond:   new(""),
-						Sorts:        []ReportSort{{By: "TOTAL", Order: "DESC"}},
+						Sorts:        []ReportSort{{By: ReportSortByTotal, Order: SortOrderDesc}},
 					},
 				},
 				Revision: 6,
@@ -115,10 +115,10 @@ func TestClientUpdateReports(t *testing.T) {
 			Index:        0,
 			Groups:       []ReportGroup{{Code: "status"}},
 			Aggregations: []ReportAggregation{{Type: AggregationTypeCount}},
-			Sorts:        []ReportSort{{By: "TOTAL", Order: "DESC"}},
+			Sorts:        []ReportSort{{By: ReportSortByTotal, Order: SortOrderDesc}},
 			PeriodicReport: &PeriodicReport{
 				Active: new(false),
-				Period: ReportPeriod{Every: "HOUR", Minute: "30"},
+				Period: ReportPeriod{Every: TimeUnitHour, Minute: "30"},
 			},
 		},
 		"Inactive": {

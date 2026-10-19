@@ -23,9 +23,19 @@ type ProcessState struct {
 
 // ProcessAssignee is the assignees of a status.
 type ProcessAssignee struct {
-	Type     string         `json:"type"`
-	Entities []TargetEntity `json:"entities"`
+	Type     ProcessAssigneeType `json:"type"`
+	Entities []TargetEntity      `json:"entities"`
 }
+
+// ProcessAssigneeType is how the assignees of a status work on it.
+type ProcessAssigneeType string
+
+// Process assignee types.
+const (
+	ProcessAssigneeTypeOne ProcessAssigneeType = "ONE"
+	ProcessAssigneeTypeAll ProcessAssigneeType = "ALL"
+	ProcessAssigneeTypeAny ProcessAssigneeType = "ANY"
+)
 
 // TargetEntity is an entity with whether to include the sub organizations,
 // used for the assignees, the executable users and the notification targets.
@@ -37,13 +47,22 @@ type TargetEntity struct {
 // ProcessAction is an action of the process management. ExecutableUser is the
 // users who can execute the action of type SECONDARY.
 type ProcessAction struct {
-	Name           string          `json:"name"`
-	From           string          `json:"from"`
-	To             string          `json:"to"`
-	FilterCond     string          `json:"filterCond,omitzero"`
-	Type           string          `json:"type,omitzero"`
-	ExecutableUser *ExecutableUser `json:"executableUser,omitzero"`
+	Name           string            `json:"name"`
+	From           string            `json:"from"`
+	To             string            `json:"to"`
+	FilterCond     string            `json:"filterCond,omitzero"`
+	Type           ProcessActionType `json:"type,omitzero"`
+	ExecutableUser *ExecutableUser   `json:"executableUser,omitzero"`
 }
+
+// ProcessActionType is the type of a process action.
+type ProcessActionType string
+
+// Process action types.
+const (
+	ProcessActionTypePrimary   ProcessActionType = "PRIMARY"
+	ProcessActionTypeSecondary ProcessActionType = "SECONDARY"
+)
 
 // ExecutableUser is the users who can execute an action.
 type ExecutableUser struct {

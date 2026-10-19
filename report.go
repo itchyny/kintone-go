@@ -45,9 +45,23 @@ const (
 // ReportGroup is a group of a graph. Per is the time unit of a date or time
 // field.
 type ReportGroup struct {
-	Code string `json:"code"`
-	Per  string `json:"per,omitzero"`
+	Code string   `json:"code"`
+	Per  TimeUnit `json:"per,omitzero"`
 }
+
+// TimeUnit is a unit of time, used for the groups and the periodic reports of graphs.
+type TimeUnit string
+
+// Time units.
+const (
+	TimeUnitYear    TimeUnit = "YEAR"
+	TimeUnitQuarter TimeUnit = "QUARTER"
+	TimeUnitMonth   TimeUnit = "MONTH"
+	TimeUnitWeek    TimeUnit = "WEEK"
+	TimeUnitDay     TimeUnit = "DAY"
+	TimeUnitHour    TimeUnit = "HOUR"
+	TimeUnitMinute  TimeUnit = "MINUTE"
+)
 
 // ReportAggregation is an aggregation of a graph. Code is empty for COUNT.
 type ReportAggregation struct {
@@ -69,9 +83,29 @@ const (
 
 // ReportSort is a sort of a graph.
 type ReportSort struct {
-	By    string `json:"by"`
-	Order string `json:"order"`
+	By    ReportSortBy `json:"by"`
+	Order SortOrder    `json:"order"`
 }
+
+// ReportSortBy is the target of a sort of a graph.
+type ReportSortBy string
+
+// Report sort targets.
+const (
+	ReportSortByTotal  ReportSortBy = "TOTAL"
+	ReportSortByGroup1 ReportSortBy = "GROUP1"
+	ReportSortByGroup2 ReportSortBy = "GROUP2"
+	ReportSortByGroup3 ReportSortBy = "GROUP3"
+)
+
+// SortOrder is the order of a sort.
+type SortOrder string
+
+// Sort orders.
+const (
+	SortOrderAsc  SortOrder = "ASC"
+	SortOrderDesc SortOrder = "DESC"
+)
 
 // PeriodicReport is the setting of the periodic report of a graph.
 type PeriodicReport struct {
@@ -81,14 +115,38 @@ type PeriodicReport struct {
 
 // ReportPeriod is the period of a periodic report.
 type ReportPeriod struct {
-	Every      string `json:"every"`
-	Month      string `json:"month,omitzero"`
-	Time       string `json:"time,omitzero"`
-	Pattern    string `json:"pattern,omitzero"`
-	DayOfMonth string `json:"dayOfMonth,omitzero"`
-	DayOfWeek  string `json:"dayOfWeek,omitzero"`
-	Minute     string `json:"minute,omitzero"`
+	Every      TimeUnit       `json:"every"`
+	Month      string         `json:"month,omitzero"`
+	Time       string         `json:"time,omitzero"`
+	Pattern    QuarterPattern `json:"pattern,omitzero"`
+	DayOfMonth string         `json:"dayOfMonth,omitzero"`
+	DayOfWeek  DayOfWeek      `json:"dayOfWeek,omitzero"`
+	Minute     string         `json:"minute,omitzero"`
 }
+
+// QuarterPattern is the months of a quarterly periodic report.
+type QuarterPattern string
+
+// Quarter patterns.
+const (
+	QuarterPatternJanAprJulOct QuarterPattern = "JAN_APR_JUL_OCT"
+	QuarterPatternFebMayAugNov QuarterPattern = "FEB_MAY_AUG_NOV"
+	QuarterPatternMarJunSepDec QuarterPattern = "MAR_JUN_SEP_DEC"
+)
+
+// DayOfWeek is a day of the week.
+type DayOfWeek string
+
+// Days of the week.
+const (
+	DayOfWeekSunday    DayOfWeek = "SUNDAY"
+	DayOfWeekMonday    DayOfWeek = "MONDAY"
+	DayOfWeekTuesday   DayOfWeek = "TUESDAY"
+	DayOfWeekWednesday DayOfWeek = "WEDNESDAY"
+	DayOfWeekThursday  DayOfWeek = "THURSDAY"
+	DayOfWeekFriday    DayOfWeek = "FRIDAY"
+	DayOfWeekSaturday  DayOfWeek = "SATURDAY"
+)
 
 // Reports is the graphs of an app, keyed by the graph name.
 type Reports struct {

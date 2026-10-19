@@ -280,8 +280,8 @@ func TestClientGetFieldPermissions(t *testing.T) {
 					{
 						Code: "salary",
 						Entities: []FieldRightEntity{
-							{Accessibility: "WRITE", Entity: FieldEntity{Type: EntityTypeOrganization, Code: "hr"}, IncludeSubs: true},
-							{Accessibility: "NONE", Entity: FieldEntity{Type: EntityTypeGroup, Code: "everyone"}},
+							{Accessibility: AccessibilityWrite, Entity: FieldEntity{Type: EntityTypeOrganization, Code: "hr"}, IncludeSubs: true},
+							{Accessibility: AccessibilityNone, Entity: FieldEntity{Type: EntityTypeGroup, Code: "everyone"}},
 						},
 					},
 				},
@@ -301,7 +301,7 @@ func TestClientUpdateFieldPermissions(t *testing.T) {
 		{
 			Code: "salary",
 			Entities: []FieldRightEntity{
-				{Accessibility: "READ", Entity: FieldEntity{Type: EntityTypeUser, Code: "alice"}},
+				{Accessibility: AccessibilityRead, Entity: FieldEntity{Type: EntityTypeUser, Code: "alice"}},
 			},
 		},
 	}, 3)

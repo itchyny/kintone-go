@@ -132,10 +132,20 @@ type FieldRight struct {
 
 // FieldRightEntity is a field permission of an entity.
 type FieldRightEntity struct {
-	Accessibility string      `json:"accessibility"`
-	Entity        FieldEntity `json:"entity"`
-	IncludeSubs   bool        `json:"includeSubs,omitzero"`
+	Accessibility Accessibility `json:"accessibility"`
+	Entity        FieldEntity   `json:"entity"`
+	IncludeSubs   bool          `json:"includeSubs,omitzero"`
 }
+
+// Accessibility is the access to a field.
+type Accessibility string
+
+// Accessibilities.
+const (
+	AccessibilityRead  Accessibility = "READ"
+	AccessibilityWrite Accessibility = "WRITE"
+	AccessibilityNone  Accessibility = "NONE"
+)
 
 // GetFieldPermissions gets the field permissions of an app. Lang of the
 // request is not used.

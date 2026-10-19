@@ -17,7 +17,7 @@ type Space struct {
 	Creator             Entity           `json:"creator"`
 	Modifier            Entity           `json:"modifier"`
 	MemberCount         int64            `json:"memberCount,string"`
-	CoverType           string           `json:"coverType"`
+	CoverType           CoverType        `json:"coverType"`
 	CoverKey            string           `json:"coverKey"`
 	CoverURL            string           `json:"coverUrl"`
 	Body                string           `json:"body"`
@@ -33,10 +33,28 @@ type Space struct {
 	Permissions         SpacePermissions `json:"permissions"`
 }
 
+// CoverType is the type of the cover image of a space.
+type CoverType string
+
+// Cover types.
+const (
+	CoverTypeBlob   CoverType = "BLOB"
+	CoverTypePreset CoverType = "PRESET"
+)
+
 // SpacePermissions is the permissions of a space.
 type SpacePermissions struct {
-	CreateApp string `json:"createApp"`
+	CreateApp CreateAppPermission `json:"createApp"`
 }
+
+// CreateAppPermission is who can create apps in a space.
+type CreateAppPermission string
+
+// Create app permissions.
+const (
+	CreateAppPermissionEveryone CreateAppPermission = "EVERYONE"
+	CreateAppPermissionAdmin    CreateAppPermission = "ADMIN"
+)
 
 // GetSpace gets the information of a space.
 func (c *Client) GetSpace(ctx context.Context, id int64) (*Space, error) {

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
+	"strings"
 )
 
 // BulkRequest is a bulk request, which sends the requests at once. Use the
@@ -139,4 +141,97 @@ func (b *BulkRequest) Send(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+var (
+	allRecordsChunkSize = 100
+	allRecordsBulkSize  = 20
+)
+
+// AllRecordsError is an error of the methods to process all records, such as
+// [Client.AddAllRecords]. Processed is the number of the records processed
+// before the error, and Err is the error of the bulk request.
+type AllRecordsError struct {
+	Processed int
+	Err       error
+}
+
+func (e *AllRecordsError) Error() string {
+	return fmt.Sprintf("kintone: processed %d records: %s", e.Processed, strings.TrimPrefix(e.Err.Error(), "kintone: "))
+}
+
+// Unwrap returns the error of the bulk request.
+func (e *AllRecordsError) Unwrap() error {
+	return e.Err
+}
+
+// AddAllRecords adds records by splitting them into bulk requests. If a bulk
+// request fails, it returns the records added by the earlier bulk requests and
+// an [*AllRecordsError].
+func (c *Client) AddAllRecords(ctx context.Context, app int64, records []Record) ([]RecordRevision, error) {
+	results, err := c.sendAllRecords(ctx, len(records), func(i, j int) apiRequest[[]RecordRevision] {
+		return addRecordsRequest(app, records[i:j])
+	})
+	return slices.Concat(results...), err
+}
+
+// UpdateAllRecords updates records by splitting them into bulk requests. If a
+// bulk request fails, it returns the records updated by the earlier bulk
+// requests and an [*AllRecordsError].
+func (c *Client) UpdateAllRecords(ctx context.Context, app int64, updates []RecordUpdate) ([]UpdatedRecord, error) {
+	results, err := c.sendAllRecords(ctx, len(updates), func(i, j int) apiRequest[[]UpdatedRecord] {
+		return updateRecordsRequest(app, updates[i:j], false)
+	})
+	return slices.Concat(results...), err
+}
+
+// UpsertAllRecords upserts records by splitting them into bulk requests. If a
+// bulk request fails, it returns the records upserted by the earlier bulk
+// requests and an [*AllRecordsError].
+func (c *Client) UpsertAllRecords(ctx context.Context, app int64, updates []RecordUpdate) ([]UpdatedRecord, error) {
+	results, err := c.sendAllRecords(ctx, len(updates), func(i, j int) apiRequest[[]UpdatedRecord] {
+		return updateRecordsRequest(app, updates[i:j], true)
+	})
+	return slices.Concat(results...), err
+}
+
+// DeleteAllRecords deletes records by splitting them into bulk requests. The
+// revisions are not checked if revisions is nil. If a bulk request fails, it
+// returns an [*AllRecordsError].
+func (c *Client) DeleteAllRecords(ctx context.Context, app int64, ids, revisions []int64) error {
+	if revisions != nil && len(revisions) != len(ids) {
+		return fmt.Errorf("kintone: got %d revisions for %d ids", len(revisions), len(ids))
+	}
+	_, err := c.sendAllRecords(ctx, len(ids), func(i, j int) apiRequest[struct{}] {
+		if revisions == nil {
+			return deleteRecordsRequest(app, ids[i:j], nil)
+		}
+		return deleteRecordsRequest(app, ids[i:j], revisions[i:j])
+	})
+	return err
+}
+
+func (c *Client) sendAllRecords[T any](ctx context.Context, n int, request func(i, j int) apiRequest[T]) ([]T, error) {
+	var values []T
+	for i := 0; i < n; {
+		bulk := c.NewBulkRequest()
+		var results []*BulkResult[T]
+		j := i
+		for range allRecordsBulkSize {
+			if j == n {
+				break
+			}
+			k := min(j+allRecordsChunkSize, n)
+			results = append(results, bulk.add(request(j, k)))
+			j = k
+		}
+		if err := bulk.Send(ctx); err != nil {
+			return values, &AllRecordsError{Processed: i, Err: err}
+		}
+		for _, r := range results {
+			values = append(values, r.Value())
+		}
+		i = j
+	}
+	return values, nil
 }

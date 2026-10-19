@@ -426,7 +426,7 @@ func TestClientGetRecordsWarning(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				if tc.warning != "" {
 					w.Header().Set("X-Cybozu-Warning", tc.warning)
 				}

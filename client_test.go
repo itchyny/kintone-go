@@ -530,7 +530,7 @@ func TestClientDoErrorHeader(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("X-ConcurrencyLimit-Limit", "100")
 				w.Header().Set("X-ConcurrencyLimit-Running", "100")
 				w.WriteHeader(http.StatusServiceUnavailable)
@@ -553,7 +553,7 @@ func TestClientDoErrorHeader(t *testing.T) {
 }
 
 func TestClientDoBulkError(t *testing.T) {
-	ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("X-ConcurrencyLimit-Limit", "100")
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = io.WriteString(w, `{"results": [{}, {"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}, {}]}`)

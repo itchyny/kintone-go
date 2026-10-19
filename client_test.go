@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -371,6 +372,67 @@ func TestClientDoContextCanceled(t *testing.T) {
 	_, err := c.do[struct{}](ctx, http.MethodGet, "app.json", nil)
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("do should return context.Canceled but got: %v", err)
+	}
+}
+
+func TestClientDoClosedIdleConnection(t *testing.T) {
+	testCases := []struct {
+		name    string
+		method  string
+		wantErr bool
+	}{
+		{
+			name:   "get with params",
+			method: http.MethodGet,
+		},
+		{
+			name:    "post",
+			method:  http.MethodPost,
+			wantErr: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var count atomic.Int32
+			ts := httptest.NewTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if _, ok := r.Header["Idempotency-Key"]; ok {
+					t.Errorf("Idempotency-Key header should not be sent: %v", r.Header)
+				}
+				// Close the reused connection on the second request.
+				if count.Add(1) == 2 {
+					conn, _, err := http.NewResponseController(w).Hijack()
+					if err != nil {
+						t.Errorf("hijack: %v", err)
+						return
+					}
+					_ = conn.Close()
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, `{}`)
+			}))
+			c := newTestClient(t, ts)
+			params := map[string]any{"app": 1}
+			if _, err := c.do[struct{}](t.Context(), http.MethodGet, "records.json", params); err != nil {
+				t.Fatalf("do returned error: %v", err)
+			}
+			_, err := c.do[struct{}](t.Context(), tc.method, "records.json", params)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("do should return error")
+				}
+				if got := count.Load(); got != 2 {
+					t.Errorf("requests: got %d, want %d", got, 2)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("do returned error: %v", err)
+				}
+				if got := count.Load(); got != 3 {
+					t.Errorf("requests: got %d, want %d", got, 3)
+				}
+			}
+		})
 	}
 }
 

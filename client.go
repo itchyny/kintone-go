@@ -213,6 +213,9 @@ func (c *Client) doHeader[T any](ctx context.Context, method, path string, param
 	}
 	if httpMethod != method {
 		req.Header.Set("X-HTTP-Method-Override", method)
+		// Mark the request as idempotent so that the transport retries it on
+		// a closed idle connection. The header with no value is not sent.
+		req.Header["Idempotency-Key"] = nil
 	}
 	res, err := c.send(req)
 	if err != nil {

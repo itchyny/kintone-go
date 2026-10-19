@@ -142,6 +142,29 @@ for comment, err := range client.AllComments(ctx, kintone.GetCommentsRequest{App
 
 </details>
 
+`UpdateStatus` runs an action of the process management on a record, and `UpdateAssignees` changes the assignees.
+
+<details>
+<summary>Example</summary>
+
+```go
+revision, err := client.UpdateStatus(ctx, app, kintone.StatusUpdate{
+	ID:       id,
+	Action:   "Submit",
+	Assignee: "alice",
+})
+if err != nil {
+	return err
+}
+_, err = client.UpdateAssignees(ctx, app, kintone.AssigneesUpdate{
+	ID:        id,
+	Assignees: []string{"bob"},
+	Revision:  revision,
+})
+```
+
+</details>
+
 ### Cursor
 
 `AllRecords` iterates over all the records matching the query using a cursor.
@@ -273,6 +296,29 @@ err = client.WaitForDeploy(ctx, []int64{added.App})
 
 </details>
 
+The other settings are got and updated in the same way: form fields and layout, views, graphs, admin notes,
+process management, JavaScript and CSS customization, plugins, notifications, permissions, actions and categories.
+
+<details>
+<summary>Example</summary>
+
+```go
+views, err := client.GetViews(ctx, kintone.GetAppSettingsRequest{App: app, Preview: true})
+if err != nil {
+	return err
+}
+views.Views["Open deals"] = kintone.View{
+	Type:       kintone.ViewTypeList,
+	Name:       "Open deals",
+	Index:      len(views.Views),
+	Fields:     []string{"title", "status"},
+	FilterCond: new(`status in ("Open")`),
+}
+_, err = client.UpdateViews(ctx, app, views.Views, views.Revision)
+```
+
+</details>
+
 `AllApps` iterates over the apps.
 
 <details>
@@ -325,6 +371,26 @@ members = append(members, kintone.SpaceMember{
 	Entity: kintone.FieldEntity{Type: kintone.EntityTypeUser, Code: "bob"},
 })
 err = client.UpdateSpaceMembers(ctx, space.ID, members)
+```
+
+</details>
+
+`AddGuests` adds guest users, and `UpdateGuestMembers` updates the guest members of a guest space.
+
+<details>
+<summary>Example</summary>
+
+```go
+err := client.AddGuests(ctx, []kintone.Guest{{
+	Code:     "guest@example.com",
+	Password: password,
+	Timezone: "Asia/Tokyo",
+	Name:     "Guest",
+}})
+if err != nil {
+	return err
+}
+err = client.UpdateGuestMembers(ctx, guestSpaceID, []string{"guest@example.com"})
 ```
 
 </details>

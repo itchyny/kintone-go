@@ -172,6 +172,28 @@ fmt.Println(added.Value().ID)
 
 </details>
 
+`AddAllRecords`, `UpdateAllRecords`, `UpsertAllRecords` and `DeleteAllRecords` process any number of records
+by splitting them into bulk requests, which are sent one after another.
+If a bulk request fails, they return a `*kintone.AllRecordsError` with the number of the records processed before it,
+and the methods other than `DeleteAllRecords` also return the results of those records.
+
+<details>
+<summary>Example</summary>
+
+```go
+added, err := client.AddAllRecords(ctx, app, records)
+if err != nil {
+	var e *kintone.AllRecordsError
+	if errors.As(err, &e) {
+		fmt.Printf("%d records added before the error\n", e.Processed)
+	}
+	return err
+}
+fmt.Println(len(added))
+```
+
+</details>
+
 ### Apps
 
 App settings are changed in the preview environment, and deployed to the production environment by `DeployApps`.

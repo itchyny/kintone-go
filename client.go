@@ -143,6 +143,15 @@ func WithUserAgent(userAgent string) Option {
 	}
 }
 
+// WithAcceptLanguage sets the Accept-Language header, which selects the
+// language of the error messages with API tokens, and of the data when the
+// language setting of the user follows the browser.
+func WithAcceptLanguage(language string) Option {
+	return func(c *Client) {
+		c.header.Set("Accept-Language", language)
+	}
+}
+
 func (c *Client) withoutGuestSpace() *Client {
 	return c.withGuestSpace(0)
 }

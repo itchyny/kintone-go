@@ -213,6 +213,29 @@ func TestClientUserAgent(t *testing.T) {
 	})
 }
 
+func TestClientAcceptLanguage(t *testing.T) {
+	t.Run("default", func(t *testing.T) {
+		ts, got := newTestServer(t, http.StatusOK, `{}`)
+		c := newTestClient(t, ts)
+		if _, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil); err != nil {
+			t.Fatalf("do returned error: %v", err)
+		}
+		if _, ok := got.Header["Accept-Language"]; ok {
+			t.Errorf("Accept-Language should not be sent: %q", got.Header.Get("Accept-Language"))
+		}
+	})
+	t.Run("custom", func(t *testing.T) {
+		ts, got := newTestServer(t, http.StatusOK, `{}`)
+		c := newTestClient(t, ts, WithAcceptLanguage("en"))
+		if _, err := c.do[struct{}](t.Context(), http.MethodGet, "app.json", nil); err != nil {
+			t.Fatalf("do returned error: %v", err)
+		}
+		if got, want := got.Header.Get("Accept-Language"), "en"; got != want {
+			t.Errorf("Accept-Language: got %q, want %q", got, want)
+		}
+	})
+}
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {

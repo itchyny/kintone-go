@@ -44,6 +44,7 @@ if err != nil {
 | `WithGuestSpace(id)` | Access apps in the guest space. |
 | `WithHTTPClient(httpClient)` | Use the HTTP client for requests. |
 | `WithUserAgent(userAgent)` | Set the User-Agent header. |
+| `WithAcceptLanguage(language)` | Set the Accept-Language header. |
 
 ### Records
 

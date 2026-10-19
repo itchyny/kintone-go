@@ -17,14 +17,38 @@ go get github.com/itchyny/kintone-go
 ## Usage
 
 ```go
-import "github.com/itchyny/kintone-go"
+package main
 
-client, err := kintone.NewClient(
-	"https://example.cybozu.com",
-	kintone.WithAPIToken(os.Getenv("KINTONE_API_TOKEN")),
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/itchyny/kintone-go"
 )
-if err != nil {
-	return err
+
+func main() {
+	client, err := kintone.NewClient(
+		"https://example.cybozu.com",
+		kintone.WithAPIToken(os.Getenv("KINTONE_API_TOKEN")),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx := context.Background()
+
+	app, err := client.GetApp(ctx, 1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(app.Name)
+
+	record, err := client.GetRecord(ctx, app.AppID, 1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(record["title"].Value)
 }
 ```
 

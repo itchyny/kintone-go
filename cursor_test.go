@@ -479,6 +479,34 @@ func TestClientAllRecordsByIDError(t *testing.T) {
 	}
 }
 
+func TestClientAllRecordsByIDContextCanceled(t *testing.T) {
+	setValue(t, &allRecordsByIDLimit, 2)
+	ts, requests := newSequenceServer(t,
+		response{http.StatusOK, idRecords("1", "2")},
+	)
+	c := newTestClient(t, ts)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	var ids []string
+	var err error
+	for r, e := range c.AllRecordsByID(ctx, AllRecordsByIDRequest{App: 1}) {
+		if err = e; err != nil {
+			break
+		}
+		ids = append(ids, r["$id"].Value.(string))
+		cancel()
+	}
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("AllRecordsByID should return context.Canceled but got: %v", err)
+	}
+	if want := []string{"1", "2"}; !reflect.DeepEqual(ids, want) {
+		t.Errorf("record IDs: got %v, want %v", ids, want)
+	}
+	if reqs := requests(); len(reqs) != 1 {
+		t.Errorf("number of requests: got %d, want %d", len(reqs), 1)
+	}
+}
+
 func TestClientAllRecordsByIDBreak(t *testing.T) {
 	setValue(t, &allRecordsByIDLimit, 2)
 	ts, requests := newSequenceServer(t, response{http.StatusOK, idRecords("1", "2")})

@@ -141,6 +141,28 @@ func TestClientGetRecords(t *testing.T) {
 	}
 }
 
+func TestQuote(t *testing.T) {
+	testCases := []struct {
+		s, want string
+	}{
+		{``, `""`},
+		{`サイボウズ株式会社`, `"サイボウズ株式会社"`},
+		{`sample"1"`, `"sample\"1\""`},
+		{`sample\2\`, `"sample\\2\\"`},
+		{`x" or title != "`, `"x\" or title != \""`},
+		{"a\tb\nc\r", `"a\tb\nc\r"`},
+		{"\x00\x01\x1f\x7f\u0085", `"\u0000\u0001\u001f\u007f\u0085"`},
+		{"\b\f\v", `"\u0008\u000c\u000b"`},
+		{"line\u2028separator 😀", "\"line\u2028separator 😀\""},
+		{`\"` + "\n", `"\\\"\n"`},
+	}
+	for _, tc := range testCases {
+		if got := Quote(tc.s); got != tc.want {
+			t.Errorf("Quote(%q): got %q, want %q", tc.s, got, tc.want)
+		}
+	}
+}
+
 func TestClientAddRecord(t *testing.T) {
 	testCases := []struct {
 		name     string

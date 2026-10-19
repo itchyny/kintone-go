@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode"
 )
 
 // Record is a kintone record, keyed by the field code.
@@ -26,6 +28,7 @@ func (c *Client) GetRecord(ctx context.Context, app, id int64) (Record, error) {
 }
 
 // GetRecordsRequest is the request of [Client.GetRecords].
+// Use [Quote] to quote string values in Query.
 type GetRecordsRequest struct {
 	App        int64    `json:"app"`
 	Fields     []string `json:"fields,omitempty"`
@@ -50,6 +53,35 @@ func (c *Client) GetRecords(ctx context.Context, req GetRecordsRequest) (*GetRec
 	}
 	result.Warning = header.Get(warningHeader)
 	return &result, nil
+}
+
+// Quote returns a double-quoted string for a value in a query, escaping double
+// quotes, backslashes and control characters.
+func Quote(s string) string {
+	var sb strings.Builder
+	sb.Grow(len(s) + 2)
+	sb.WriteByte('"')
+	for _, r := range s {
+		switch r {
+		case '"', '\\':
+			sb.WriteByte('\\')
+			sb.WriteRune(r)
+		case '\t':
+			sb.WriteString(`\t`)
+		case '\n':
+			sb.WriteString(`\n`)
+		case '\r':
+			sb.WriteString(`\r`)
+		default:
+			if unicode.IsControl(r) {
+				fmt.Fprintf(&sb, `\u%04x`, r)
+			} else {
+				sb.WriteRune(r)
+			}
+		}
+	}
+	sb.WriteByte('"')
+	return sb.String()
 }
 
 // RecordRevision is the ID and the revision of a record.

@@ -11,6 +11,7 @@ import (
 )
 
 // CreateCursorRequest is the request of [Client.CreateCursor].
+// Use [Quote] to quote string values in Query.
 type CreateCursorRequest struct {
 	App    int64    `json:"app"`
 	Fields []string `json:"fields,omitempty"`
@@ -123,6 +124,7 @@ func (e *WarningError) Error() string {
 
 // AllRecordsByIDRequest is the request of [Client.AllRecordsByID].
 // Condition is the query condition, without order by, limit and offset.
+// Use [Quote] to quote string values in Condition.
 type AllRecordsByIDRequest struct {
 	App       int64
 	Fields    []string

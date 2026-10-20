@@ -250,11 +250,12 @@ Other errors are returned as is, and `kintone.IsErrorCode` works for both.
 ```go
 bulk := client.NewBulkRequest()
 added := bulk.AddRecord(app, kintone.Record{"title": {Value: "Hello"}})
-bulk.UpdateStatus(app, kintone.StatusUpdate{ID: id, Action: "Submit"})
+revision := bulk.UpdateStatus(app, kintone.StatusUpdate{ID: id, Action: "Submit"})
 if err := bulk.Send(ctx); err != nil {
 	return err
 }
 fmt.Println(added.Value().ID)
+fmt.Println(revision.Value())
 ```
 
 </details>
@@ -270,8 +271,7 @@ and the methods other than `DeleteAllRecords` also return the results of those r
 ```go
 added, err := client.AddAllRecords(ctx, app, records)
 if err != nil {
-	var e *kintone.AllRecordsError
-	if errors.As(err, &e) {
+	if e, ok := errors.AsType[*kintone.AllRecordsError](err); ok {
 		fmt.Printf("%d records added before the error\n", e.Processed)
 	}
 	return err
@@ -444,7 +444,10 @@ if err != nil {
 if _, err := client.AddAppPlugins(ctx, app, []string{plugin.ID}, 0); err != nil {
 	return err
 }
-err = client.DeployApps(ctx, []kintone.AppDeployment{{App: app}})
+if err := client.DeployApps(ctx, []kintone.AppDeployment{{App: app}}); err != nil {
+	return err
+}
+err = client.WaitForDeploy(ctx, []int64{app})
 ```
 
 </details>
@@ -507,12 +510,14 @@ if err != nil {
 	return err
 }
 for id := range apis.APIs {
-	schema, err := client.GetAPISchema(ctx, id)
-	if err != nil {
-		return err
-	}
-	fmt.Println(id, schema.HTTPMethod, schema.Path)
+	fmt.Println(id)
 }
+
+schema, err := client.GetAPISchema(ctx, "records/get")
+if err != nil {
+	return err
+}
+fmt.Println(schema.HTTPMethod, schema.Path)
 ```
 
 </details>

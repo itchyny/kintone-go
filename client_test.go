@@ -236,6 +236,40 @@ func TestClientAcceptLanguage(t *testing.T) {
 	})
 }
 
+func TestNumberUnmarshalJSON(t *testing.T) {
+	testCases := []struct {
+		input   string
+		want    number
+		wantErr bool
+	}{
+		{input: `42`, want: 42},
+		{input: `"42"`, want: 42},
+		{input: `null`, want: 0},
+		{input: `"x"`, wantErr: true},
+		{input: `1.5`, wantErr: true},
+		{input: `true`, wantErr: true},
+		{input: `{}`, wantErr: true},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			var n number
+			err := json.Unmarshal([]byte(tc.input), &n)
+			if tc.wantErr {
+				if err == nil {
+					t.Errorf("json.Unmarshal should return error but got: %d", n)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("json.Unmarshal returned error: %v", err)
+			}
+			if n != tc.want {
+				t.Errorf("number: got %d, want %d", n, tc.want)
+			}
+		})
+	}
+}
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {

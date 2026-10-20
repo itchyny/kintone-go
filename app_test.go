@@ -530,3 +530,20 @@ func TestClientWaitForDeployContextCanceled(t *testing.T) {
 		}
 	})
 }
+
+func TestClientAppSettingsError(t *testing.T) {
+	ts, _ := newTestServer(t, http.StatusBadRequest, `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`)
+	c := newTestClient(t, ts)
+	views, err := c.GetViews(t.Context(), GetAppSettingsRequest{App: 1})
+	if views != nil || !IsErrorCode(err, "TEST_ERROR") {
+		t.Errorf("GetViews should return nil and TEST_ERROR but got: %v, %v", views, err)
+	}
+	revision, err := c.UpdateAppPermissions(t.Context(), 1, []AppRight{}, 0)
+	if revision != 0 || !IsErrorCode(err, "TEST_ERROR") {
+		t.Errorf("UpdateAppPermissions should return 0 and TEST_ERROR but got: %d, %v", revision, err)
+	}
+	plugins, err := c.GetPlugins(t.Context(), GetPluginsRequest{})
+	if plugins != nil || !IsErrorCode(err, "TEST_ERROR") {
+		t.Errorf("GetPlugins should return nil and TEST_ERROR but got: %v, %v", plugins, err)
+	}
+}

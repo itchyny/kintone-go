@@ -127,6 +127,15 @@ func TestClientUploadFileError(t *testing.T) {
 	}
 }
 
+func TestClientUploadFileDecodeError(t *testing.T) {
+	ts, _ := newUploadServer(t, http.StatusOK, `not json`)
+	c := newTestClient(t, ts)
+	_, err := c.UploadFile(t.Context(), "a.txt", strings.NewReader("x"))
+	if err == nil || !strings.HasPrefix(err.Error(), "kintone: decode response: ") {
+		t.Errorf("UploadFile should return a decode error but got: %v", err)
+	}
+}
+
 func TestClientDownloadFile(t *testing.T) {
 	testCases := []struct {
 		name     string

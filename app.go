@@ -150,12 +150,18 @@ func (c *Client) GetDeployStatus(ctx context.Context, apps []int64) ([]AppDeploy
 	return result.Apps, nil
 }
 
-const deployPollInterval = time.Second
+// The interval of polling the deploy status starts at deployPollInterval, and
+// doubles up to deployPollMaxInterval.
+const (
+	deployPollInterval    = 500 * time.Millisecond
+	deployPollMaxInterval = 10 * time.Second
+)
 
 // WaitForDeploy waits until the deployments of the apps finish, by polling
-// [Client.GetDeployStatus]. It returns an error if any of the deployments
-// fails or is canceled.
+// [Client.GetDeployStatus] with exponential backoff. It returns an error if any
+// of the deployments fails or is canceled.
 func (c *Client) WaitForDeploy(ctx context.Context, apps []int64) error {
+	interval := deployPollInterval
 	for {
 		statuses, err := c.GetDeployStatus(ctx, apps)
 		if err != nil {
@@ -181,8 +187,9 @@ func (c *Client) WaitForDeploy(ctx context.Context, apps []int64) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(deployPollInterval):
+		case <-time.After(interval):
 		}
+		interval = min(interval*2, deployPollMaxInterval)
 	}
 }
 

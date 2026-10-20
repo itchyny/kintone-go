@@ -451,10 +451,12 @@ func TestClientMoveApp(t *testing.T) {
 }
 
 func TestClientWaitForDeploy(t *testing.T) {
+	processing := response{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}, {"app": "2", "status": "SUCCESS"}]}`}
 	testCases := []struct {
-		name      string
-		responses []response
-		wantErr   string
+		name        string
+		responses   []response
+		wantErr     string
+		wantElapsed time.Duration
 	}{
 		{
 			name: "success",
@@ -463,6 +465,16 @@ func TestClientWaitForDeploy(t *testing.T) {
 				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}, {"app": "2", "status": "SUCCESS"}]}`},
 				{http.StatusOK, `{"apps": [{"app": "1", "status": "SUCCESS"}, {"app": "2", "status": "SUCCESS"}]}`},
 			},
+			wantElapsed: 1500 * time.Millisecond,
+		},
+		{
+			name: "long deployment",
+			responses: []response{
+				processing, processing, processing, processing, processing, processing, processing,
+				{http.StatusOK, `{"apps": [{"app": "1", "status": "SUCCESS"}, {"app": "2", "status": "SUCCESS"}]}`},
+			},
+			// the interval doubles from 0.5s up to 10s
+			wantElapsed: 35500 * time.Millisecond,
 		},
 		{
 			name: "failure",
@@ -470,7 +482,8 @@ func TestClientWaitForDeploy(t *testing.T) {
 				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}, {"app": "2", "status": "PROCESSING"}]}`},
 				{http.StatusOK, `{"apps": [{"app": "1", "status": "FAIL"}, {"app": "2", "status": "CANCEL"}]}`},
 			},
-			wantErr: "kintone: deployment failed: app 1: FAIL, app 2: CANCEL",
+			wantErr:     "kintone: deployment failed: app 1: FAIL, app 2: CANCEL",
+			wantElapsed: 500 * time.Millisecond,
 		},
 		{
 			name: "error response",
@@ -478,7 +491,8 @@ func TestClientWaitForDeploy(t *testing.T) {
 				{http.StatusOK, `{"apps": [{"app": "1", "status": "PROCESSING"}]}`},
 				{http.StatusInternalServerError, `{"code": "TEST_ERROR", "id": "abc123", "message": "Test error."}`},
 			},
-			wantErr: "kintone: Test error. (status: 500, code: TEST_ERROR, id: abc123)",
+			wantErr:     "kintone: Test error. (status: 500, code: TEST_ERROR, id: abc123)",
+			wantElapsed: 500 * time.Millisecond,
 		},
 	}
 	for _, tc := range testCases {
@@ -495,7 +509,7 @@ func TestClientWaitForDeploy(t *testing.T) {
 				} else if err == nil || err.Error() != tc.wantErr {
 					t.Fatalf("WaitForDeploy should return error %q but got: %v", tc.wantErr, err)
 				}
-				if got, want := time.Since(start), time.Duration(len(tc.responses)-1)*time.Second; got != want {
+				if got, want := time.Since(start), tc.wantElapsed; got != want {
 					t.Errorf("elapsed time: got %v, want %v", got, want)
 				}
 				reqs := requests()
@@ -517,12 +531,12 @@ func TestClientWaitForDeployContextCanceled(t *testing.T) {
 		)
 		c := newTestClient(t, ts)
 		ctx, cancel := context.WithCancel(t.Context())
-		time.AfterFunc(500*time.Millisecond, cancel)
+		time.AfterFunc(300*time.Millisecond, cancel)
 		start := time.Now()
 		if err := c.WaitForDeploy(ctx, []int64{1}); !errors.Is(err, context.Canceled) {
 			t.Errorf("WaitForDeploy should return context.Canceled but got: %v", err)
 		}
-		if got, want := time.Since(start), 500*time.Millisecond; got != want {
+		if got, want := time.Since(start), 300*time.Millisecond; got != want {
 			t.Errorf("elapsed time: got %v, want %v", got, want)
 		}
 		if reqs := requests(); len(reqs) != 1 {

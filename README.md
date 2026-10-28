@@ -58,7 +58,7 @@ func main() {
 | --- | --- |
 | `WithAPIToken(tokens...)` | API tokens. Specify multiple tokens to access multiple apps, such as on lookup fields. |
 | `WithPassword(username, password)` | Login name and password. |
-| `WithOAuthToken(token)` | OAuth access token. |
+| `WithOAuthToken(token)` | OAuth access token. Cannot be used with `WithBasicAuth`. |
 | `WithBasicAuth(username, password)` | Basic authentication, required when the domain enables it. |
 
 ### Other options

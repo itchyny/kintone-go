@@ -98,15 +98,17 @@ func WithPassword(username, password string) Option {
 	}
 }
 
-// WithOAuthToken authenticates with the OAuth access token.
+// WithOAuthToken authenticates with the OAuth access token. It cannot be used
+// with [WithBasicAuth] since both set the Authorization header.
 func WithOAuthToken(token string) Option {
 	return func(c *Client) {
 		c.header.Set("Authorization", "Bearer "+token)
 	}
 }
 
-// WithBasicAuth sets the credential of the Basic authentication,
-// which is required when the domain enables it.
+// WithBasicAuth sets the credential of the Basic authentication, which is
+// required when the domain enables it. It cannot be used with
+// [WithOAuthToken] since both set the Authorization header.
 func WithBasicAuth(username, password string) Option {
 	return func(c *Client) {
 		c.header.Set("Authorization", "Basic "+basicCredential(username, password))

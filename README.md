@@ -497,6 +497,30 @@ _, err = io.Copy(out, body)
 
 </details>
 
+### Search
+
+`Search` searches the records, comments, spaces, threads, and attachments across kintone,
+and `AllSearchHits` iterates over all the search hits.
+
+<details>
+<summary>Example</summary>
+
+```go
+for hit, err := range client.AllSearchHits(ctx, kintone.SearchRequest{
+	Query: []kintone.SearchQuery{
+		{Operator: kintone.SearchOperatorAnd, Keywords: []string{"estimate"}},
+	},
+	Types: []kintone.SearchType{kintone.SearchTypeRecord},
+}) {
+	if err != nil {
+		return err
+	}
+	fmt.Println(hit.Record.AppName, hit.Record.RecordTitle, hit.URL)
+}
+```
+
+</details>
+
 ### API info
 
 `GetAPIs` and `GetAPISchema` get the list of the kintone REST APIs and their JSON Schemas.

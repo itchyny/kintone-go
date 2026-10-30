@@ -1,4 +1,8 @@
 # Changelog
+## [v0.2.0](https://github.com/itchyny/kintone-go/compare/v0.1.0..v0.2.0) (2026-10-30)
+* implement `Search` and `AllSearchHits` for the search API
+* improve `WaitForDeploy` to poll the deploy status with exponential backoff
+
 ## [v0.1.0](https://github.com/itchyny/kintone-go/compare/6b46947..v0.1.0) (2026-10-20)
 * initial implementation of the kintone REST API client
 * authenticate with API tokens, password, OAuth access token, and Basic authentication,

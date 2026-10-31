@@ -37,10 +37,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-      - name: Setup release body
-        run: sed -n '/\[${{ github.ref_name }}\]/,/^$/{//!p}' CHANGELOG.md >release-body.txt
       - name: Create release
-        uses: ncipollo/release-action@v1
-        with:
-          name: Release ${{ github.ref_name }}
-          bodyFile: release-body.txt
+        run: |
+          sed -n '/\['"${GITHUB_REF_NAME//./[.]}"']/,/^$/{//!p;}' CHANGELOG.md |
+            gh release create "$GITHUB_REF_NAME" --verify-tag \
+              --title "Release $GITHUB_REF_NAME" --notes-file -
+        env:
+          GH_TOKEN: ${{ github.token }}
